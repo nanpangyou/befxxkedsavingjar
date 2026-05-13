@@ -21,32 +21,42 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.z.money.data.SettingsRepository
+import com.z.money.data.UserSettings
+import com.z.money.data.toSalaryInput
+import com.z.money.data.toWorkSchedule
 import com.z.money.domain.EarningSnapshot
 import com.z.money.domain.IncomeCalculator
-import com.z.money.domain.SalaryInput
 import com.z.money.domain.SalaryPeriod
-import com.z.money.domain.WorkSchedule
 import com.z.money.domain.WorkdayStatus
 import com.z.money.ui.theme.MoneyTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.util.Locale
 
 @Composable
 fun EarningScreen() {
-    var settings by remember { mutableStateOf(EarningSettings()) }
+    val context = LocalContext.current
+    val repository = remember { SettingsRepository(context.applicationContext) }
+    val persistedSettings by repository.settings.collectAsState(initial = UserSettings())
+    val settings = EarningSettings.fromUserSettings(persistedSettings)
+    val scope = rememberCoroutineScope()
     var showingSettings by remember { mutableStateOf(false) }
     var now by remember { mutableStateOf(LocalDateTime.now()) }
 
@@ -60,7 +70,12 @@ fun EarningScreen() {
     if (showingSettings) {
         SettingsContent(
             settings = settings,
-            onSettingsChange = { settings = it },
+            onSave = { draft ->
+                scope.launch {
+                    repository.save(draft.toUserSettings())
+                    showingSettings = false
+                }
+            },
             onBack = { showingSettings = false },
         )
     } else {
@@ -156,9 +171,11 @@ private fun EarningContent(
 @Composable
 private fun SettingsContent(
     settings: EarningSettings,
-    onSettingsChange: (EarningSettings) -> Unit,
+    onSave: (EarningSettings) -> Unit,
     onBack: () -> Unit,
 ) {
+    var draft by remember(settings) { mutableStateOf(settings) }
+
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
@@ -178,8 +195,8 @@ private fun SettingsContent(
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 SalaryPeriod.entries.forEach { period ->
                     FilterChip(
-                        selected = settings.salaryPeriod == period,
-                        onClick = { onSettingsChange(settings.copy(salaryPeriod = period)) },
+                        selected = draft.salaryPeriod == period,
+                        onClick = { draft = draft.copy(salaryPeriod = period) },
                         label = { Text(text = period.label) },
                     )
                 }
@@ -187,20 +204,20 @@ private fun SettingsContent(
 
             SettingsNumberField(
                 label = "\u85aa\u8d44\u91d1\u989d",
-                value = settings.salaryAmount,
-                onValueChange = { onSettingsChange(settings.copy(salaryAmount = it)) },
+                value = draft.salaryAmount,
+                onValueChange = { draft = draft.copy(salaryAmount = it) },
             )
 
             SettingsNumberField(
                 label = "\u5e74\u5de5\u4f5c\u65e5",
-                value = settings.annualWorkDays,
-                onValueChange = { onSettingsChange(settings.copy(annualWorkDays = it)) },
+                value = draft.annualWorkDays,
+                onValueChange = { draft = draft.copy(annualWorkDays = it) },
             )
 
             SettingsNumberField(
                 label = "\u6bcf\u5929\u5de5\u4f5c\u5c0f\u65f6",
-                value = settings.dailyWorkHours,
-                onValueChange = { onSettingsChange(settings.copy(dailyWorkHours = it)) },
+                value = draft.dailyWorkHours,
+                onValueChange = { draft = draft.copy(dailyWorkHours = it) },
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -216,7 +233,7 @@ private fun SettingsContent(
                     Text(text = "\u8fd4\u56de")
                 }
                 Button(
-                    onClick = onBack,
+                    onClick = { onSave(draft) },
                     modifier = Modifier.weight(1f),
                 ) {
                     Text(text = "\u4fdd\u5b58")
@@ -296,19 +313,36 @@ private data class EarningSettings(
     val summaryText: String
         get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${annualWorkDays.ifBlank { "0" }} \u4e2a\u5de5\u4f5c\u65e5\uff0c\u6bcf\u5929 ${dailyWorkHours.ifBlank { "0" }} \u5c0f\u65f6\u3002"
 
-    fun toSalaryInput(): SalaryInput {
-        val yuan = salaryAmount.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0
-        return SalaryInput(
-            amountCents = (yuan * 100).toLong(),
-            period = salaryPeriod,
-        )
-    }
+    fun toSalaryInput() = toUserSettings().toSalaryInput()
 
-    fun toWorkSchedule(): WorkSchedule {
-        return WorkSchedule(
+    fun toWorkSchedule() = toUserSettings().toWorkSchedule()
+
+    fun toUserSettings(): UserSettings {
+        return UserSettings(
+            salaryPeriod = salaryPeriod,
+            salaryAmountYuan = salaryAmount.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0,
             annualWorkDays = annualWorkDays.toIntOrNull()?.coerceAtLeast(1) ?: 1,
             dailyWorkHours = dailyWorkHours.toDoubleOrNull()?.coerceAtLeast(0.1) ?: 0.1,
         )
+    }
+
+    companion object {
+        fun fromUserSettings(settings: UserSettings): EarningSettings {
+            return EarningSettings(
+                salaryPeriod = settings.salaryPeriod,
+                salaryAmount = settings.salaryAmountYuan.toDisplayString(),
+                annualWorkDays = settings.annualWorkDays.toString(),
+                dailyWorkHours = settings.dailyWorkHours.toDisplayString(),
+            )
+        }
+    }
+}
+
+private fun Double.toDisplayString(): String {
+    return if (this % 1.0 == 0.0) {
+        toLong().toString()
+    } else {
+        toString()
     }
 }
 
