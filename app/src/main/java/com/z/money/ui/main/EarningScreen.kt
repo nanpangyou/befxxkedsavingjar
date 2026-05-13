@@ -220,6 +220,18 @@ private fun SettingsContent(
                 onValueChange = { draft = draft.copy(dailyWorkHours = it) },
             )
 
+            SettingsTimeField(
+                label = "\u4e0a\u73ed\u65f6\u95f4",
+                value = draft.workStartTime,
+                onValueChange = { draft = draft.copy(workStartTime = it) },
+            )
+
+            SettingsTimeField(
+                label = "\u4e0b\u73ed\u65f6\u95f4",
+                value = draft.workEndTime,
+                onValueChange = { draft = draft.copy(workEndTime = it) },
+            )
+
             Spacer(modifier = Modifier.weight(1f))
 
             Row(
@@ -256,6 +268,25 @@ private fun SettingsNumberField(
         label = { Text(text = label) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+    )
+}
+
+@Composable
+private fun SettingsTimeField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { rawValue ->
+            onValueChange(rawValue.filter { it.isDigit() || it == ':' }.take(5))
+        },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(text = label) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        supportingText = { Text(text = "HH:mm") },
     )
 }
 
@@ -309,9 +340,11 @@ private data class EarningSettings(
     val salaryAmount: String = "10000",
     val annualWorkDays: String = "250",
     val dailyWorkHours: String = "8",
+    val workStartTime: String = "09:00",
+    val workEndTime: String = "17:00",
 ) {
     val summaryText: String
-        get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${annualWorkDays.ifBlank { "0" }} \u4e2a\u5de5\u4f5c\u65e5\uff0c\u6bcf\u5929 ${dailyWorkHours.ifBlank { "0" }} \u5c0f\u65f6\u3002"
+        get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${annualWorkDays.ifBlank { "0" }} \u4e2a\u5de5\u4f5c\u65e5\uff0c\u6bcf\u5929 ${dailyWorkHours.ifBlank { "0" }} \u5c0f\u65f6\uff0c${workStartTime.ifBlank { "--:--" }}-${workEndTime.ifBlank { "--:--" }}\u3002"
 
     fun toSalaryInput() = toUserSettings().toSalaryInput()
 
@@ -323,6 +356,8 @@ private data class EarningSettings(
             salaryAmountYuan = salaryAmount.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0,
             annualWorkDays = annualWorkDays.toIntOrNull()?.coerceAtLeast(1) ?: 1,
             dailyWorkHours = dailyWorkHours.toDoubleOrNull()?.coerceAtLeast(0.1) ?: 0.1,
+            workStartMinutes = workStartTime.toMinutesOrNull() ?: UserSettings().workStartMinutes,
+            workEndMinutes = workEndTime.toMinutesOrNull() ?: UserSettings().workEndMinutes,
         )
     }
 
@@ -333,6 +368,8 @@ private data class EarningSettings(
                 salaryAmount = settings.salaryAmountYuan.toDisplayString(),
                 annualWorkDays = settings.annualWorkDays.toString(),
                 dailyWorkHours = settings.dailyWorkHours.toDisplayString(),
+                workStartTime = settings.workStartMinutes.toTimeText(),
+                workEndTime = settings.workEndMinutes.toTimeText(),
             )
         }
     }
@@ -344,6 +381,22 @@ private fun Double.toDisplayString(): String {
     } else {
         toString()
     }
+}
+
+private fun String.toMinutesOrNull(): Int? {
+    val parts = split(":")
+    if (parts.size != 2) return null
+
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+    if (hour !in 0..23 || minute !in 0..59) return null
+
+    return hour * 60 + minute
+}
+
+private fun Int.toTimeText(): String {
+    val minutes = coerceIn(0, 24 * 60 - 1)
+    return "%02d:%02d".format(Locale.US, minutes / 60, minutes % 60)
 }
 
 private val SalaryPeriod.label: String
