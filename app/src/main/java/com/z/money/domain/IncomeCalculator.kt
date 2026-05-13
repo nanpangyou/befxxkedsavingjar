@@ -29,7 +29,7 @@ data class WorkSchedule(
     val annualWorkDays: Int = 250,
     val dailyWorkHours: Double = 8.0,
     val workStart: LocalTime = LocalTime.of(9, 0),
-    val workEnd: LocalTime = LocalTime.of(18, 0),
+    val workEnd: LocalTime = LocalTime.of(17, 0),
     val workDays: Set<DayOfWeek> = DEFAULT_WORK_DAYS,
 ) {
     init {

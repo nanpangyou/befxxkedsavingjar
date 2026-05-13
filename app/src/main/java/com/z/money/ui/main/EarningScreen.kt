@@ -9,8 +9,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +46,8 @@ import java.util.Locale
 
 @Composable
 fun EarningScreen() {
+    var settings by remember { mutableStateOf(EarningSettings()) }
+    var showingSettings by remember { mutableStateOf(false) }
     var now by remember { mutableStateOf(LocalDateTime.now()) }
 
     LaunchedEffect(Unit) {
@@ -49,17 +57,31 @@ fun EarningScreen() {
         }
     }
 
-    EarningContent(
-        snapshot = IncomeCalculator.snapshot(
-            salary = demoSalary,
-            schedule = demoSchedule,
-            now = now,
-        ),
-    )
+    if (showingSettings) {
+        SettingsContent(
+            settings = settings,
+            onSettingsChange = { settings = it },
+            onBack = { showingSettings = false },
+        )
+    } else {
+        EarningContent(
+            snapshot = IncomeCalculator.snapshot(
+                salary = settings.toSalaryInput(),
+                schedule = settings.toWorkSchedule(),
+                now = now,
+            ),
+            settings = settings,
+            onOpenSettings = { showingSettings = true },
+        )
+    }
 }
 
 @Composable
-private fun EarningContent(snapshot: EarningSnapshot) {
+private fun EarningContent(
+    snapshot: EarningSnapshot,
+    settings: EarningSettings,
+    onOpenSettings: () -> Unit,
+) {
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
@@ -116,12 +138,108 @@ private fun EarningContent(snapshot: EarningSnapshot) {
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "\u5f53\u524d\u4f7f\u7528\u6f14\u793a\u85aa\u8d44\uff1a\u6708\u85aa 10000 \u5143\uff0c250 \u4e2a\u5de5\u4f5c\u65e5\uff0c\u6bcf\u5929 8 \u5c0f\u65f6\u3002",
+                text = settings.summaryText,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
+
+            Button(
+                onClick = onOpenSettings,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(text = "\u8bbe\u7f6e\u85aa\u8d44")
+            }
         }
     }
+}
+
+@Composable
+private fun SettingsContent(
+    settings: EarningSettings,
+    onSettingsChange: (EarningSettings) -> Unit,
+    onBack: () -> Unit,
+) {
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(innerPadding)
+                .padding(horizontal = 24.dp, vertical = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            Text(
+                text = "\u85aa\u8d44\u8bbe\u7f6e",
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SalaryPeriod.entries.forEach { period ->
+                    FilterChip(
+                        selected = settings.salaryPeriod == period,
+                        onClick = { onSettingsChange(settings.copy(salaryPeriod = period)) },
+                        label = { Text(text = period.label) },
+                    )
+                }
+            }
+
+            SettingsNumberField(
+                label = "\u85aa\u8d44\u91d1\u989d",
+                value = settings.salaryAmount,
+                onValueChange = { onSettingsChange(settings.copy(salaryAmount = it)) },
+            )
+
+            SettingsNumberField(
+                label = "\u5e74\u5de5\u4f5c\u65e5",
+                value = settings.annualWorkDays,
+                onValueChange = { onSettingsChange(settings.copy(annualWorkDays = it)) },
+            )
+
+            SettingsNumberField(
+                label = "\u6bcf\u5929\u5de5\u4f5c\u5c0f\u65f6",
+                value = settings.dailyWorkHours,
+                onValueChange = { onSettingsChange(settings.copy(dailyWorkHours = it)) },
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(text = "\u8fd4\u56de")
+                }
+                Button(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(text = "\u4fdd\u5b58")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsNumberField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onValueChange(it.filter { char -> char.isDigit() || char == '.' }) },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(text = label) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+    )
 }
 
 @Composable
@@ -169,23 +287,50 @@ private fun formatCurrency(cents: Double): String {
     return formatter.format(cents / 100.0)
 }
 
-private val demoSalary = SalaryInput(
-    amountCents = 10_000_00,
-    period = SalaryPeriod.Monthly,
-)
+private data class EarningSettings(
+    val salaryPeriod: SalaryPeriod = SalaryPeriod.Monthly,
+    val salaryAmount: String = "10000",
+    val annualWorkDays: String = "250",
+    val dailyWorkHours: String = "8",
+) {
+    val summaryText: String
+        get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${annualWorkDays.ifBlank { "0" }} \u4e2a\u5de5\u4f5c\u65e5\uff0c\u6bcf\u5929 ${dailyWorkHours.ifBlank { "0" }} \u5c0f\u65f6\u3002"
 
-private val demoSchedule = WorkSchedule()
+    fun toSalaryInput(): SalaryInput {
+        val yuan = salaryAmount.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0
+        return SalaryInput(
+            amountCents = (yuan * 100).toLong(),
+            period = salaryPeriod,
+        )
+    }
+
+    fun toWorkSchedule(): WorkSchedule {
+        return WorkSchedule(
+            annualWorkDays = annualWorkDays.toIntOrNull()?.coerceAtLeast(1) ?: 1,
+            dailyWorkHours = dailyWorkHours.toDoubleOrNull()?.coerceAtLeast(0.1) ?: 0.1,
+        )
+    }
+}
+
+private val SalaryPeriod.label: String
+    get() = when (this) {
+        SalaryPeriod.Monthly -> "\u6708\u85aa"
+        SalaryPeriod.Annual -> "\u5e74\u85aa"
+    }
 
 @Preview(showBackground = true)
 @Composable
 private fun EarningContentPreview() {
+    val settings = EarningSettings()
     MoneyTheme {
         EarningContent(
             snapshot = IncomeCalculator.snapshot(
-                salary = demoSalary,
-                schedule = demoSchedule,
+                salary = settings.toSalaryInput(),
+                schedule = settings.toWorkSchedule(),
                 now = LocalDateTime.of(2026, 5, 13, 10, 30),
             ),
+            settings = settings,
+            onOpenSettings = {},
         )
     }
 }
