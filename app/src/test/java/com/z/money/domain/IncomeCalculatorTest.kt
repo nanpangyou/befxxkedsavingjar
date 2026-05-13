@@ -9,7 +9,6 @@ import java.time.LocalTime
 class IncomeCalculatorTest {
     private val schedule = WorkSchedule(
         annualWorkDays = 250,
-        dailyWorkHours = 8.0,
         workStart = LocalTime.of(9, 0),
         workEnd = LocalTime.of(17, 0),
     )
@@ -30,6 +29,16 @@ class IncomeCalculatorTest {
         val centsPerSecond = IncomeCalculator.centsPerSecond(salary, schedule)
 
         assertEquals(1.6667, centsPerSecond, 0.0001)
+    }
+
+    @Test
+    fun centsPerSecondUsesTimeBetweenWorkStartAndEnd() {
+        val salary = SalaryInput(amountCents = 120_000_00, period = SalaryPeriod.Annual)
+        val longerSchedule = schedule.copy(workEnd = LocalTime.of(21, 0))
+
+        val centsPerSecond = IncomeCalculator.centsPerSecond(salary, longerSchedule)
+
+        assertEquals(1.1111, centsPerSecond, 0.0001)
     }
 
     @Test

@@ -22,13 +22,11 @@ class UserSettingsMapperTest {
     fun clampsScheduleValuesToValidMinimums() {
         val settings = UserSettings(
             annualWorkDays = -10,
-            dailyWorkHours = -8.0,
         )
 
         val schedule = settings.toWorkSchedule()
 
         assertEquals(1, schedule.annualWorkDays)
-        assertEquals(0.1, schedule.dailyWorkHours, 0.0)
     }
 
     @Test

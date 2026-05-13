@@ -24,8 +24,6 @@ class SettingsRepository(
                 ?: UserSettings().salaryAmountYuan,
             annualWorkDays = preferences[Keys.annualWorkDays]
                 ?: UserSettings().annualWorkDays,
-            dailyWorkHours = preferences[Keys.dailyWorkHours]
-                ?: UserSettings().dailyWorkHours,
             workStartMinutes = preferences[Keys.workStartMinutes]
                 ?: UserSettings().workStartMinutes,
             workEndMinutes = preferences[Keys.workEndMinutes]
@@ -38,7 +36,6 @@ class SettingsRepository(
             preferences[Keys.salaryPeriod] = settings.salaryPeriod.name
             preferences[Keys.salaryAmountYuan] = settings.salaryAmountYuan
             preferences[Keys.annualWorkDays] = settings.annualWorkDays
-            preferences[Keys.dailyWorkHours] = settings.dailyWorkHours
             preferences[Keys.workStartMinutes] = settings.workStartMinutes
             preferences[Keys.workEndMinutes] = settings.workEndMinutes
         }
@@ -48,7 +45,6 @@ class SettingsRepository(
         val salaryPeriod = stringPreferencesKey("salary_period")
         val salaryAmountYuan = doublePreferencesKey("salary_amount_yuan")
         val annualWorkDays = intPreferencesKey("annual_work_days")
-        val dailyWorkHours = doublePreferencesKey("daily_work_hours")
         val workStartMinutes = intPreferencesKey("work_start_minutes")
         val workEndMinutes = intPreferencesKey("work_end_minutes")
     }

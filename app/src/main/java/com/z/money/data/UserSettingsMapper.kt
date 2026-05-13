@@ -14,7 +14,6 @@ fun UserSettings.toSalaryInput(): SalaryInput {
 fun UserSettings.toWorkSchedule(): WorkSchedule {
     return WorkSchedule(
         annualWorkDays = annualWorkDays.coerceAtLeast(1),
-        dailyWorkHours = dailyWorkHours.coerceAtLeast(0.1),
         workStart = workStartMinutes.toLocalTime(),
         workEnd = workEndMinutes.toLocalTime().takeIf {
             it > workStartMinutes.toLocalTime()

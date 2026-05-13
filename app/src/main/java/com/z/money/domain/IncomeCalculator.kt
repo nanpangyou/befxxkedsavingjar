@@ -27,21 +27,19 @@ data class SalaryInput(
 
 data class WorkSchedule(
     val annualWorkDays: Int = 250,
-    val dailyWorkHours: Double = 8.0,
     val workStart: LocalTime = LocalTime.of(9, 0),
     val workEnd: LocalTime = LocalTime.of(17, 0),
     val workDays: Set<DayOfWeek> = DEFAULT_WORK_DAYS,
 ) {
     init {
         require(annualWorkDays > 0) { "annualWorkDays must be greater than 0" }
-        require(dailyWorkHours > 0.0) { "dailyWorkHours must be greater than 0" }
         require(workStart < workEnd) { "workStart must be before workEnd" }
         require(workDays.isNotEmpty()) { "workDays must not be empty" }
     }
 
     fun isWorkday(date: LocalDate): Boolean = date.dayOfWeek in workDays
 
-    fun workdaySeconds(): Long = (dailyWorkHours * SECONDS_PER_HOUR).toLong()
+    fun workdaySeconds(): Long = Duration.between(workStart, workEnd).seconds
 
     companion object {
         val DEFAULT_WORK_DAYS: Set<DayOfWeek> = setOf(
@@ -51,8 +49,6 @@ data class WorkSchedule(
             DayOfWeek.THURSDAY,
             DayOfWeek.FRIDAY,
         )
-
-        private const val SECONDS_PER_HOUR = 3_600
     }
 }
 

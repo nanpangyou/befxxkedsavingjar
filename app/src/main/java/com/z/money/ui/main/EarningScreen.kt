@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -214,22 +217,16 @@ private fun SettingsContent(
                 onValueChange = { draft = draft.copy(annualWorkDays = it) },
             )
 
-            SettingsNumberField(
-                label = "\u6bcf\u5929\u5de5\u4f5c\u5c0f\u65f6",
-                value = draft.dailyWorkHours,
-                onValueChange = { draft = draft.copy(dailyWorkHours = it) },
-            )
-
-            SettingsTimeField(
+            SettingsTimeDropdown(
                 label = "\u4e0a\u73ed\u65f6\u95f4",
-                value = draft.workStartTime,
-                onValueChange = { draft = draft.copy(workStartTime = it) },
+                minutes = draft.workStartMinutes,
+                onMinutesChange = { draft = draft.copy(workStartMinutes = it) },
             )
 
-            SettingsTimeField(
+            SettingsTimeDropdown(
                 label = "\u4e0b\u73ed\u65f6\u95f4",
-                value = draft.workEndTime,
-                onValueChange = { draft = draft.copy(workEndTime = it) },
+                minutes = draft.workEndMinutes,
+                onMinutesChange = { draft = draft.copy(workEndMinutes = it) },
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -272,22 +269,76 @@ private fun SettingsNumberField(
 }
 
 @Composable
-private fun SettingsTimeField(
+private fun SettingsTimeDropdown(
     label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
+    minutes: Int,
+    onMinutesChange: (Int) -> Unit,
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = { rawValue ->
-            onValueChange(rawValue.filter { it.isDigit() || it == ':' }.take(5))
-        },
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text(text = label) },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        supportingText = { Text(text = "HH:mm") },
-    )
+    val normalizedMinutes = minutes.coerceIn(0, MINUTES_PER_DAY - 1)
+    val hour = normalizedMinutes / MINUTES_PER_HOUR
+    val minute = normalizedMinutes % MINUTES_PER_HOUR
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = label,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelLarge,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            TimePartDropdown(
+                value = hour,
+                options = (0..23).toList(),
+                suffix = "\u65f6",
+                onValueChange = { onMinutesChange(it * MINUTES_PER_HOUR + minute) },
+                modifier = Modifier.weight(1f),
+            )
+            TimePartDropdown(
+                value = minute,
+                options = MINUTE_OPTIONS,
+                suffix = "\u5206",
+                onValueChange = { onMinutesChange(hour * MINUTES_PER_HOUR + it) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimePartDropdown(
+    value: Int,
+    options: List<Int>,
+    suffix: String,
+    onValueChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(modifier = modifier) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(text = "%02d %s".format(Locale.US, value, suffix))
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 280.dp),
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(text = "%02d %s".format(Locale.US, option, suffix)) },
+                    onClick = {
+                        expanded = false
+                        onValueChange(option)
+                    },
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -339,12 +390,11 @@ private data class EarningSettings(
     val salaryPeriod: SalaryPeriod = SalaryPeriod.Monthly,
     val salaryAmount: String = "10000",
     val annualWorkDays: String = "250",
-    val dailyWorkHours: String = "8",
-    val workStartTime: String = "09:00",
-    val workEndTime: String = "17:00",
+    val workStartMinutes: Int = 9 * MINUTES_PER_HOUR,
+    val workEndMinutes: Int = 17 * MINUTES_PER_HOUR,
 ) {
     val summaryText: String
-        get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${annualWorkDays.ifBlank { "0" }} \u4e2a\u5de5\u4f5c\u65e5\uff0c\u6bcf\u5929 ${dailyWorkHours.ifBlank { "0" }} \u5c0f\u65f6\uff0c${workStartTime.ifBlank { "--:--" }}-${workEndTime.ifBlank { "--:--" }}\u3002"
+        get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${annualWorkDays.ifBlank { "0" }} \u4e2a\u5de5\u4f5c\u65e5\uff0c${workStartMinutes.toTimeText()}-${workEndMinutes.toTimeText()}\u3002"
 
     fun toSalaryInput() = toUserSettings().toSalaryInput()
 
@@ -355,9 +405,8 @@ private data class EarningSettings(
             salaryPeriod = salaryPeriod,
             salaryAmountYuan = salaryAmount.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0,
             annualWorkDays = annualWorkDays.toIntOrNull()?.coerceAtLeast(1) ?: 1,
-            dailyWorkHours = dailyWorkHours.toDoubleOrNull()?.coerceAtLeast(0.1) ?: 0.1,
-            workStartMinutes = workStartTime.toMinutesOrNull() ?: UserSettings().workStartMinutes,
-            workEndMinutes = workEndTime.toMinutesOrNull() ?: UserSettings().workEndMinutes,
+            workStartMinutes = workStartMinutes,
+            workEndMinutes = workEndMinutes,
         )
     }
 
@@ -367,9 +416,8 @@ private data class EarningSettings(
                 salaryPeriod = settings.salaryPeriod,
                 salaryAmount = settings.salaryAmountYuan.toDisplayString(),
                 annualWorkDays = settings.annualWorkDays.toString(),
-                dailyWorkHours = settings.dailyWorkHours.toDisplayString(),
-                workStartTime = settings.workStartMinutes.toTimeText(),
-                workEndTime = settings.workEndMinutes.toTimeText(),
+                workStartMinutes = settings.workStartMinutes,
+                workEndMinutes = settings.workEndMinutes,
             )
         }
     }
@@ -383,21 +431,14 @@ private fun Double.toDisplayString(): String {
     }
 }
 
-private fun String.toMinutesOrNull(): Int? {
-    val parts = split(":")
-    if (parts.size != 2) return null
-
-    val hour = parts[0].toIntOrNull() ?: return null
-    val minute = parts[1].toIntOrNull() ?: return null
-    if (hour !in 0..23 || minute !in 0..59) return null
-
-    return hour * 60 + minute
-}
-
 private fun Int.toTimeText(): String {
-    val minutes = coerceIn(0, 24 * 60 - 1)
-    return "%02d:%02d".format(Locale.US, minutes / 60, minutes % 60)
+    val minutes = coerceIn(0, MINUTES_PER_DAY - 1)
+    return "%02d:%02d".format(Locale.US, minutes / MINUTES_PER_HOUR, minutes % MINUTES_PER_HOUR)
 }
+
+private val MINUTE_OPTIONS = (0..55 step 5).toList()
+private const val MINUTES_PER_HOUR = 60
+private const val MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
 
 private val SalaryPeriod.label: String
     get() = when (this) {
