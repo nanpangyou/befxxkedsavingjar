@@ -100,6 +100,8 @@ private fun EarningContent(
     settings: EarningSettings,
     onOpenSettings: () -> Unit,
 ) {
+    val earningFractionDigits = fractionDigitsForCents(snapshot.centsPerSecond)
+
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
@@ -116,7 +118,10 @@ private fun EarningContent(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
-                    text = formatPreciseCurrency(snapshot.earnedCentsToday),
+                    text = formatCurrency(
+                        cents = snapshot.earnedCentsToday,
+                        fractionDigits = earningFractionDigits,
+                    ),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 44.sp,
                     fontWeight = FontWeight.Bold,
@@ -137,7 +142,12 @@ private fun EarningContent(
             ) {
                 MetricTile(
                     title = "\u6bcf\u79d2\u6536\u5165",
-                    value = "${formatPreciseCurrency(snapshot.centsPerSecond)} / \u79d2",
+                    value = "${
+                        formatCurrency(
+                            cents = snapshot.centsPerSecond,
+                            fractionDigits = earningFractionDigits,
+                        )
+                    } / \u79d2",
                     modifier = Modifier.weight(1f),
                 )
                 MetricTile(
@@ -386,18 +396,23 @@ private fun formatCurrency(cents: Double): String {
     return formatter.format(cents / 100.0)
 }
 
-private fun formatPreciseCurrency(cents: Double): String {
+private fun formatCurrency(
+    cents: Double,
+    fractionDigits: Int,
+): String {
+    return NumberFormat.getCurrencyInstance(Locale.CHINA).apply {
+        minimumFractionDigits = fractionDigits
+        maximumFractionDigits = fractionDigits
+    }.format(cents / 100.0)
+}
+
+private fun fractionDigitsForCents(cents: Double): Int {
     val yuan = cents / 100.0
-    val fractionDigits = when {
+    return when {
         yuan >= 0.01 -> 2
         yuan >= 0.0001 -> 4
         else -> 6
     }
-
-    return NumberFormat.getCurrencyInstance(Locale.CHINA).apply {
-        minimumFractionDigits = fractionDigits
-        maximumFractionDigits = fractionDigits
-    }.format(yuan)
 }
 
 private data class EarningSettings(
