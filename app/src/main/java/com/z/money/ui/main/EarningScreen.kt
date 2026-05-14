@@ -116,7 +116,7 @@ private fun EarningContent(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
-                    text = formatCurrency(snapshot.earnedCentsToday),
+                    text = formatPreciseCurrency(snapshot.earnedCentsToday),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 44.sp,
                     fontWeight = FontWeight.Bold,
