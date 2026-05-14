@@ -243,7 +243,7 @@ private fun SettingsContent(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                WorkdayMode.entries.forEach { mode ->
+                WORKDAY_MODE_OPTIONS.forEach { mode ->
                     FilterChip(
                         selected = draft.workdayMode == mode,
                         onClick = { draft = draft.copy(workdayMode = mode) },
@@ -562,6 +562,7 @@ private fun Int.toTimeText(): String {
 }
 
 private val MINUTE_OPTIONS = (0..59).toList()
+private val WORKDAY_MODE_OPTIONS = listOf(WorkdayMode.ChinaLegal, WorkdayMode.FixedWeekly)
 private const val MINUTES_PER_HOUR = 60
 private const val MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
 private const val SECONDS_PER_HOUR = 3_600

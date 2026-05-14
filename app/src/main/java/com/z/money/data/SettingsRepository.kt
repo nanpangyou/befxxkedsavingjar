@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 private val Context.settingsDataStore by preferencesDataStore(name = "settings")
 
 private object SettingsKeys {
+    val schemaVersion = intPreferencesKey("schema_version")
     val salaryPeriod = stringPreferencesKey("salary_period")
     val salaryAmountYuan = doublePreferencesKey("salary_amount_yuan")
     val annualWorkDays = intPreferencesKey("annual_work_days")
@@ -32,6 +33,7 @@ class SettingsRepository(
     private val holidayService: ChinaHolidayService = ChinaHolidayService(),
 ) {
     val settings: Flow<UserSettings> = context.settingsDataStore.data.map { preferences ->
+        val schemaVersion = preferences[SettingsKeys.schemaVersion] ?: 0
         UserSettings(
             salaryPeriod = SalaryPeriod.entries.firstOrNull {
                 it.name == preferences[SettingsKeys.salaryPeriod]
@@ -44,9 +46,7 @@ class SettingsRepository(
                 ?: UserSettings().workStartMinutes,
             workEndMinutes = preferences[SettingsKeys.workEndMinutes]
                 ?: UserSettings().workEndMinutes,
-            workdayMode = WorkdayMode.entries.firstOrNull {
-                it.name == preferences[SettingsKeys.workdayMode]
-            } ?: UserSettings().workdayMode,
+            workdayMode = preferences.toWorkdayMode(schemaVersion),
             workDays = preferences[SettingsKeys.workDays]?.toWorkDays()
                 ?: UserSettings().workDays,
             chinaLegalCalendar = preferences.toChinaLegalCalendar(),
@@ -55,6 +55,7 @@ class SettingsRepository(
 
     suspend fun save(settings: UserSettings) {
         context.settingsDataStore.edit { preferences ->
+            preferences[SettingsKeys.schemaVersion] = CURRENT_SCHEMA_VERSION
             preferences[SettingsKeys.salaryPeriod] = settings.salaryPeriod.name
             preferences[SettingsKeys.salaryAmountYuan] = settings.salaryAmountYuan
             preferences[SettingsKeys.annualWorkDays] = settings.annualWorkDays
@@ -94,6 +95,18 @@ private fun String.toWorkDays(): Set<DayOfWeek> {
     return days.ifEmpty { UserSettings().workDays }
 }
 
+private fun androidx.datastore.preferences.core.Preferences.toWorkdayMode(
+    schemaVersion: Int,
+): WorkdayMode {
+    if (schemaVersion < CHINA_LEGAL_DEFAULT_SCHEMA_VERSION) {
+        return WorkdayMode.ChinaLegal
+    }
+
+    return WorkdayMode.entries.firstOrNull {
+        it.name == this[SettingsKeys.workdayMode]
+    } ?: UserSettings().workdayMode
+}
+
 private fun androidx.datastore.preferences.core.Preferences.toChinaLegalCalendar(): ChinaLegalCalendar? {
     val year = this[SettingsKeys.chinaLegalYear] ?: return null
     return ChinaLegalCalendar(
@@ -114,3 +127,6 @@ private fun String?.toDateSet(): Set<LocalDate> {
         ?.toSet()
         ?: emptySet()
 }
+
+private const val CURRENT_SCHEMA_VERSION = 2
+private const val CHINA_LEGAL_DEFAULT_SCHEMA_VERSION = 2
