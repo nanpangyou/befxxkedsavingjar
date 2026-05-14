@@ -37,32 +37,6 @@
 - JUnit
 - Gradle Kotlin DSL
 
-## 本地开发 🚀
-
-推荐使用 Android Studio 打开项目根目录：
-
-```text
-D:\Code\Money
-```
-
-运行单元测试：
-
-```powershell
-.\gradlew.bat testDebugUnitTest
-```
-
-生成 debug APK：
-
-```powershell
-.\gradlew.bat assembleDebug
-```
-
-APK 输出位置：
-
-```text
-app/build/outputs/apk/debug/app-debug.apk
-```
-
 ## 重要迭代记录 🧭
 
 - `chore: initialize Android project`
@@ -115,4 +89,3 @@ app/build/outputs/apk/debug/app-debug.apk
 - [ ] 增加 Release 签名配置
 - [ ] 准备首次可安装测试 APK
 - [ ] 后续内置 2027 年法定节假日数据
-
