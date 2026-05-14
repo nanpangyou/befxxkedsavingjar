@@ -137,12 +137,12 @@ private fun EarningContent(
             ) {
                 MetricTile(
                     title = "\u6bcf\u79d2\u6536\u5165",
-                    value = formatCurrency(snapshot.centsPerSecond),
+                    value = "${formatPreciseCurrency(snapshot.centsPerSecond)} / \u79d2",
                     modifier = Modifier.weight(1f),
                 )
                 MetricTile(
-                    title = "\u4eca\u65e5\u4e0a\u9650",
-                    value = formatCurrency(snapshot.maxEarnableCentsToday),
+                    title = "\u6bcf\u5c0f\u65f6\u6536\u5165",
+                    value = formatCurrency(snapshot.centsPerSecond * SECONDS_PER_HOUR),
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -386,6 +386,20 @@ private fun formatCurrency(cents: Double): String {
     return formatter.format(cents / 100.0)
 }
 
+private fun formatPreciseCurrency(cents: Double): String {
+    val yuan = cents / 100.0
+    val fractionDigits = when {
+        yuan >= 0.01 -> 2
+        yuan >= 0.0001 -> 4
+        else -> 6
+    }
+
+    return NumberFormat.getCurrencyInstance(Locale.CHINA).apply {
+        minimumFractionDigits = fractionDigits
+        maximumFractionDigits = fractionDigits
+    }.format(yuan)
+}
+
 private data class EarningSettings(
     val salaryPeriod: SalaryPeriod = SalaryPeriod.Monthly,
     val salaryAmount: String = "10000",
@@ -439,6 +453,7 @@ private fun Int.toTimeText(): String {
 private val MINUTE_OPTIONS = (0..55 step 5).toList()
 private const val MINUTES_PER_HOUR = 60
 private const val MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
+private const val SECONDS_PER_HOUR = 3_600
 
 private val SalaryPeriod.label: String
     get() = when (this) {
