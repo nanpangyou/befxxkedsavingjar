@@ -2,6 +2,7 @@ package com.z.money.ui.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -151,10 +152,10 @@ private fun EarningContent(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "\u4eca\u5929\u5df2\u7ecf\u8d5a\u5230",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -166,9 +167,14 @@ private fun EarningContent(
                         fractionDigits = earningFractionDigits,
                     ),
                     color = MaterialTheme.colorScheme.primary,
-                    fontSize = 44.sp,
+                    fontSize = 48.sp,
                     fontWeight = FontWeight.Bold,
-                    lineHeight = 52.sp,
+                    lineHeight = 56.sp,
+                )
+                Text(
+                    text = workdayResolution.source.label,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
 
@@ -206,12 +212,6 @@ private fun EarningContent(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            MetricTile(
-                title = "\u5de5\u4f5c\u65e5\u89c4\u5219",
-                value = workdayResolution.source.label,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
@@ -246,8 +246,8 @@ private fun SettingsContent(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
                 text = "\u85aa\u8d44\u8bbe\u7f6e",
@@ -256,27 +256,58 @@ private fun SettingsContent(
                 fontWeight = FontWeight.Bold,
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SalaryPeriod.entries.forEach { period ->
-                    FilterChip(
-                        selected = draft.salaryPeriod == period,
-                        onClick = { draft = draft.copy(salaryPeriod = period) },
-                        label = { Text(text = period.label) },
+            SettingsSection(title = "\u85aa\u8d44") {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SalaryPeriod.entries.forEach { period ->
+                        FilterChip(
+                            selected = draft.salaryPeriod == period,
+                            onClick = { draft = draft.copy(salaryPeriod = period) },
+                            label = { Text(text = period.label) },
+                        )
+                    }
+                }
+
+                SettingsNumberField(
+                    label = "\u85aa\u8d44\u91d1\u989d",
+                    value = draft.salaryAmount,
+                    onValueChange = { draft = draft.copy(salaryAmount = it) },
+                )
+            }
+
+            SettingsSection(title = "\u5de5\u4f5c\u65f6\u95f4") {
+                SettingsTimeDropdown(
+                    label = "\u4e0a\u73ed\u65f6\u95f4",
+                    minutes = draft.workStartMinutes,
+                    onMinutesChange = { draft = draft.copy(workStartMinutes = it) },
+                )
+
+                SettingsTimeDropdown(
+                    label = "\u4e0b\u73ed\u65f6\u95f4",
+                    minutes = draft.workEndMinutes,
+                    onMinutesChange = { draft = draft.copy(workEndMinutes = it) },
+                )
+            }
+
+            SettingsSection(title = "\u5de5\u4f5c\u65e5\u89c4\u5219") {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    WORKDAY_MODE_OPTIONS.forEach { mode ->
+                        FilterChip(
+                            selected = draft.workdayMode == mode,
+                            onClick = { draft = draft.copy(workdayMode = mode) },
+                            label = { Text(text = mode.label) },
+                        )
+                    }
+                }
+
+                if (draft.workdayMode == WorkdayMode.FixedWeekly) {
+                    WorkDaysSelector(
+                        selectedDays = draft.workDays,
+                        onSelectedDaysChange = { draft = draft.copy(workDays = it) },
                     )
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                WORKDAY_MODE_OPTIONS.forEach { mode ->
-                    FilterChip(
-                        selected = draft.workdayMode == mode,
-                        onClick = { draft = draft.copy(workdayMode = mode) },
-                        label = { Text(text = mode.label) },
-                    )
-                }
-            }
-
-            if (legalCalendarStatus.isNotBlank()) {
+            if (legalCalendarStatus.isNotBlank() && draft.workdayMode == WorkdayMode.ChinaLegal) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -291,31 +322,6 @@ private fun SettingsContent(
                         Text(text = "\u91cd\u65b0\u540c\u6b65")
                     }
                 }
-            }
-
-            SettingsNumberField(
-                label = "\u85aa\u8d44\u91d1\u989d",
-                value = draft.salaryAmount,
-                onValueChange = { draft = draft.copy(salaryAmount = it) },
-            )
-
-            SettingsTimeDropdown(
-                label = "\u4e0a\u73ed\u65f6\u95f4",
-                minutes = draft.workStartMinutes,
-                onMinutesChange = { draft = draft.copy(workStartMinutes = it) },
-            )
-
-            SettingsTimeDropdown(
-                label = "\u4e0b\u73ed\u65f6\u95f4",
-                minutes = draft.workEndMinutes,
-                onMinutesChange = { draft = draft.copy(workEndMinutes = it) },
-            )
-
-            if (draft.workdayMode == WorkdayMode.FixedWeekly) {
-                WorkDaysSelector(
-                    selectedDays = draft.workDays,
-                    onSelectedDaysChange = { draft = draft.copy(workDays = it) },
-                )
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -338,6 +344,25 @@ private fun SettingsContent(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SettingsSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = title,
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content,
+        )
     }
 }
 
