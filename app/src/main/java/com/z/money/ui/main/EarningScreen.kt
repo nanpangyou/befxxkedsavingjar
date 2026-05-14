@@ -43,8 +43,11 @@ import androidx.compose.ui.unit.sp
 import com.z.money.data.SettingsRepository
 import com.z.money.data.UserSettings
 import com.z.money.data.WorkdayMode
+import com.z.money.data.WorkdayResolution
+import com.z.money.data.WorkdaySource
 import com.z.money.data.toSalaryInput
 import com.z.money.data.toWorkSchedule
+import com.z.money.data.toWorkdayResolution
 import com.z.money.domain.EarningSnapshot
 import com.z.money.domain.IncomeCalculator
 import com.z.money.domain.SalaryPeriod
@@ -99,6 +102,18 @@ fun EarningScreen() {
         SettingsContent(
             settings = settings,
             legalCalendarStatus = legalCalendarStatus,
+            onRefreshLegalCalendar = {
+                scope.launch {
+                    legalCalendarStatus = "\u6b63\u5728\u540c\u6b65 ${now.year}"
+                    runCatching {
+                        repository.refreshChinaLegalCalendar(now.year)
+                    }.onSuccess {
+                        legalCalendarStatus = "${now.year} \u5df2\u540c\u6b65"
+                    }.onFailure {
+                        legalCalendarStatus = "\u540c\u6b65\u5931\u8d25\uff0c\u5df2\u4f7f\u7528\u56fa\u5b9a\u5de5\u4f5c\u65e5"
+                    }
+                }
+            },
             onSave = { draft ->
                 scope.launch {
                     repository.save(draft.toUserSettings())
@@ -114,6 +129,7 @@ fun EarningScreen() {
                 schedule = settings.toWorkSchedule(),
                 now = now,
             ),
+            workdayResolution = persistedSettings.toWorkdayResolution(now.toLocalDate()),
             settings = settings,
             onOpenSettings = { showingSettings = true },
         )
@@ -123,6 +139,7 @@ fun EarningScreen() {
 @Composable
 private fun EarningContent(
     snapshot: EarningSnapshot,
+    workdayResolution: WorkdayResolution,
     settings: EarningSettings,
     onOpenSettings: () -> Unit,
 ) {
@@ -189,6 +206,12 @@ private fun EarningContent(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            MetricTile(
+                title = "\u5de5\u4f5c\u65e5\u89c4\u5219",
+                value = workdayResolution.source.label,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
@@ -211,6 +234,7 @@ private fun EarningContent(
 private fun SettingsContent(
     settings: EarningSettings,
     legalCalendarStatus: String,
+    onRefreshLegalCalendar: () -> Unit,
     onSave: (EarningSettings) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -253,11 +277,20 @@ private fun SettingsContent(
             }
 
             if (legalCalendarStatus.isNotBlank()) {
-                Text(
-                    text = legalCalendarStatus,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = legalCalendarStatus,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedButton(onClick = onRefreshLegalCalendar) {
+                        Text(text = "\u91cd\u65b0\u540c\u6b65")
+                    }
+                }
             }
 
             SettingsNumberField(
@@ -481,6 +514,18 @@ private val WorkdayStatus.label: String
         WorkdayStatus.AfterWork -> "\u4eca\u5929\u5df2\u7ecf\u4e0b\u73ed"
     }
 
+private val WorkdaySource.label: String
+    get() = when (this) {
+        WorkdaySource.FixedWorkday -> "\u6bcf\u5468\u56fa\u5b9a\u5de5\u4f5c\u65e5"
+        WorkdaySource.FixedOffDay -> "\u6bcf\u5468\u56fa\u5b9a\u4f11\u606f\u65e5"
+        WorkdaySource.ChinaLegalFallbackWorkday -> "\u4e2d\u56fd\u6cd5\u5b9a\uff08\u672a\u540c\u6b65\uff0c\u56fa\u5b9a\u5de5\u4f5c\u65e5\uff09"
+        WorkdaySource.ChinaLegalFallbackOffDay -> "\u4e2d\u56fd\u6cd5\u5b9a\uff08\u672a\u540c\u6b65\uff0c\u56fa\u5b9a\u4f11\u606f\u65e5\uff09"
+        WorkdaySource.ChinaLegalRegularWorkday -> "\u4e2d\u56fd\u6cd5\u5b9a\u666e\u901a\u5de5\u4f5c\u65e5"
+        WorkdaySource.ChinaLegalRegularOffDay -> "\u4e2d\u56fd\u6cd5\u5b9a\u666e\u901a\u4f11\u606f\u65e5"
+        WorkdaySource.ChinaLegalAdjustedWorkday -> "\u8c03\u4f11\u8865\u73ed\u65e5"
+        WorkdaySource.ChinaLegalHoliday -> "\u6cd5\u5b9a\u4f11\u606f\u65e5"
+    }
+
 private fun formatCurrency(cents: Double): String {
     val formatter = NumberFormat.getCurrencyInstance(Locale.CHINA)
     return formatter.format(cents / 100.0)
@@ -600,6 +645,9 @@ private fun EarningContentPreview() {
                 salary = settings.toSalaryInput(),
                 schedule = settings.toWorkSchedule(),
                 now = LocalDateTime.of(2026, 5, 13, 10, 30),
+            ),
+            workdayResolution = settings.toUserSettings().toWorkdayResolution(
+                LocalDateTime.of(2026, 5, 13, 10, 30).toLocalDate(),
             ),
             settings = settings,
             onOpenSettings = {},

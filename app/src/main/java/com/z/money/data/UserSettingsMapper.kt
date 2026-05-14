@@ -33,6 +33,8 @@ fun UserSettings.toWorkSchedule(): WorkSchedule {
     )
 }
 
+fun UserSettings.toWorkdayResolution(date: LocalDate): WorkdayResolution = resolveWorkday(date)
+
 private fun calculateAnnualWorkDays(
     year: Int,
     workDays: Set<java.time.DayOfWeek>,
