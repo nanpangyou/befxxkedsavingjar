@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.z.money.data.SettingsRepository
 import com.z.money.data.UserSettings
+import com.z.money.data.ChinaLegalCalendarSource
 import com.z.money.data.WorkdayMode
 import com.z.money.data.WorkdayResolution
 import com.z.money.data.WorkdaySource
@@ -93,7 +94,11 @@ fun EarningScreen() {
                 legalCalendarStatus = "\u540c\u6b65\u5931\u8d25\uff0c\u5df2\u4f7f\u7528\u56fa\u5b9a\u5de5\u4f5c\u65e5"
             }
         } else if (persistedSettings.workdayMode == WorkdayMode.ChinaLegal) {
-            legalCalendarStatus = "${now.year} \u5df2\u540c\u6b65"
+            legalCalendarStatus = when (persistedSettings.chinaLegalCalendar?.source) {
+                ChinaLegalCalendarSource.BuiltIn -> "${now.year} \u5df2\u4f7f\u7528\u5185\u7f6e\u6cd5\u5b9a\u65e5\u5386"
+                ChinaLegalCalendarSource.Remote -> "${now.year} \u5df2\u540c\u6b65"
+                null -> ""
+            }
         } else {
             legalCalendarStatus = ""
         }

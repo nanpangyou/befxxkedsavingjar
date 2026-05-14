@@ -9,6 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.z.money.domain.SalaryPeriod
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.Year
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -49,7 +50,8 @@ class SettingsRepository(
             workdayMode = preferences.toWorkdayMode(schemaVersion),
             workDays = preferences[SettingsKeys.workDays]?.toWorkDays()
                 ?: UserSettings().workDays,
-            chinaLegalCalendar = preferences.toChinaLegalCalendar(),
+            chinaLegalCalendar = preferences.toChinaLegalCalendar()
+                ?: BuiltInChinaLegalCalendars.forYear(Year.now().value),
         )
     }
 
@@ -111,6 +113,7 @@ private fun androidx.datastore.preferences.core.Preferences.toChinaLegalCalendar
     val year = this[SettingsKeys.chinaLegalYear] ?: return null
     return ChinaLegalCalendar(
         year = year,
+        source = ChinaLegalCalendarSource.Remote,
         extraWorkDates = this[SettingsKeys.chinaLegalExtraWorkDates].toDateSet(),
         offDates = this[SettingsKeys.chinaLegalOffDates].toDateSet(),
     )

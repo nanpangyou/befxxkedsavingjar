@@ -52,6 +52,7 @@ class ChinaHolidayService {
             year = year,
             extraWorkDates = extraWorkDates,
             offDates = offDates,
+            source = ChinaLegalCalendarSource.Remote,
         )
     }
 
