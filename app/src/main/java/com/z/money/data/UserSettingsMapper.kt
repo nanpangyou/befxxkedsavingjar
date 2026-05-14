@@ -14,7 +14,7 @@ fun UserSettings.toSalaryInput(): SalaryInput {
 
 fun UserSettings.toWorkSchedule(): WorkSchedule {
     val activeCalendar = chinaLegalCalendar?.takeIf {
-        workdayMode == WorkdayMode.ChinaLegal
+        workdayMode == WorkdayMode.ChinaLegal && it.isAvailableFor(LocalDate.now().year)
     }
 
     return WorkSchedule(

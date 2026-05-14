@@ -130,6 +130,28 @@ class UserSettingsMapperTest {
     }
 
     @Test
+    fun ignoresChinaLegalCalendarFromDifferentYearForAnnualWorkDays() {
+        val settings = UserSettings(
+            workdayMode = WorkdayMode.ChinaLegal,
+            chinaLegalCalendar = ChinaLegalCalendar(
+                year = LocalDate.now().year - 1,
+                offDates = emptySet(),
+                extraWorkDates = emptySet(),
+            ),
+        )
+        val expectedWorkDays = UserSettings().workDays.sumOf { dayOfWeek ->
+            countWeekdaysInYear(
+                year = LocalDate.now().year,
+                dayOfWeek = dayOfWeek,
+            )
+        }
+
+        val schedule = settings.toWorkSchedule()
+
+        assertEquals(expectedWorkDays, schedule.annualWorkDays)
+    }
+
+    @Test
     fun defaultSettingsUseChinaLegalMode() {
         assertEquals(WorkdayMode.ChinaLegal, UserSettings().workdayMode)
     }

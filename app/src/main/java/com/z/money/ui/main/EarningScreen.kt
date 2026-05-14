@@ -93,12 +93,17 @@ fun EarningScreen() {
             }.onFailure {
                 legalCalendarStatus = "\u540c\u6b65\u5931\u8d25\uff0c\u5df2\u4f7f\u7528\u56fa\u5b9a\u5de5\u4f5c\u65e5"
             }
-        } else if (persistedSettings.workdayMode == WorkdayMode.ChinaLegal) {
+        } else if (
+            persistedSettings.workdayMode == WorkdayMode.ChinaLegal &&
+            persistedSettings.chinaLegalCalendar?.isAvailableFor(now.year) == true
+        ) {
             legalCalendarStatus = when (persistedSettings.chinaLegalCalendar?.source) {
                 ChinaLegalCalendarSource.BuiltIn -> "${now.year} \u5df2\u4f7f\u7528\u5185\u7f6e\u6cd5\u5b9a\u65e5\u5386"
                 ChinaLegalCalendarSource.Remote -> "${now.year} \u5df2\u540c\u6b65"
                 null -> ""
             }
+        } else if (persistedSettings.workdayMode == WorkdayMode.ChinaLegal) {
+            legalCalendarStatus = "\u672a\u627e\u5230 ${now.year} \u6cd5\u5b9a\u65e5\u5386\uff0c\u5df2\u4f7f\u7528\u56fa\u5b9a\u5de5\u4f5c\u65e5"
         } else {
             legalCalendarStatus = ""
         }
