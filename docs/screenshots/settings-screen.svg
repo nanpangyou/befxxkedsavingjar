@@ -1,0 +1,33 @@
+<svg width="360" height="760" viewBox="0 0 360 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="360" height="760" rx="32" fill="#F7F2EA"/>
+  <rect x="20" y="28" width="320" height="704" rx="28" fill="#FFFBF6"/>
+  <text x="40" y="82" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#2B2926">薪资设置</text>
+  <text x="40" y="132" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B2926">薪资</text>
+  <rect x="40" y="150" width="76" height="36" rx="18" fill="#2E7D5B"/>
+  <text x="62" y="173" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">月薪</text>
+  <rect x="126" y="150" width="76" height="36" rx="18" fill="#F0E8DD"/>
+  <text x="148" y="173" font-family="Arial, sans-serif" font-size="14" fill="#534D45">年薪</text>
+  <rect x="40" y="202" width="280" height="56" rx="12" fill="#FFFFFF" stroke="#D8CEC0"/>
+  <text x="56" y="236" font-family="Arial, sans-serif" font-size="16" fill="#2B2926">4000</text>
+  <text x="40" y="304" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B2926">工作时间</text>
+  <rect x="40" y="322" width="132" height="46" rx="12" fill="#F0E8DD"/>
+  <text x="78" y="351" font-family="Arial, sans-serif" font-size="16" fill="#2B2926">09 时</text>
+  <rect x="188" y="322" width="132" height="46" rx="12" fill="#F0E8DD"/>
+  <text x="226" y="351" font-family="Arial, sans-serif" font-size="16" fill="#2B2926">00 分</text>
+  <rect x="40" y="380" width="132" height="46" rx="12" fill="#F0E8DD"/>
+  <text x="78" y="409" font-family="Arial, sans-serif" font-size="16" fill="#2B2926">18 时</text>
+  <rect x="188" y="380" width="132" height="46" rx="12" fill="#F0E8DD"/>
+  <text x="226" y="409" font-family="Arial, sans-serif" font-size="16" fill="#2B2926">00 分</text>
+  <text x="40" y="474" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B2926">工作日规则</text>
+  <rect x="40" y="492" width="104" height="36" rx="18" fill="#2E7D5B"/>
+  <text x="62" y="515" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">中国法定</text>
+  <rect x="154" y="492" width="104" height="36" rx="18" fill="#F0E8DD"/>
+  <text x="176" y="515" font-family="Arial, sans-serif" font-size="14" fill="#534D45">每周固定</text>
+  <text x="40" y="560" font-family="Arial, sans-serif" font-size="14" fill="#776F65">2026 已使用内置法定日历</text>
+  <rect x="218" y="536" width="102" height="40" rx="12" fill="#FFFFFF" stroke="#D8CEC0"/>
+  <text x="242" y="561" font-family="Arial, sans-serif" font-size="14" fill="#2B2926">重新同步</text>
+  <rect x="40" y="654" width="132" height="48" rx="12" fill="#FFFFFF" stroke="#D8CEC0"/>
+  <text x="88" y="684" font-family="Arial, sans-serif" font-size="16" fill="#2B2926">返回</text>
+  <rect x="188" y="654" width="132" height="48" rx="12" fill="#2E7D5B"/>
+  <text x="236" y="684" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">保存</text>
+</svg>

@@ -1,0 +1,21 @@
+<svg width="360" height="760" viewBox="0 0 360 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="360" height="760" rx="32" fill="#F7F2EA"/>
+  <rect x="20" y="28" width="320" height="704" rx="28" fill="#FFFBF6"/>
+  <text x="40" y="78" font-family="Arial, sans-serif" font-size="17" fill="#776F65">今天已经赚到</text>
+  <text x="40" y="138" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#2E7D5B">¥128.3456</text>
+  <text x="40" y="170" font-family="Arial, sans-serif" font-size="14" fill="#776F65">中国法定普通工作日</text>
+  <rect x="40" y="204" width="280" height="8" rx="4" fill="#E6DED3"/>
+  <rect x="40" y="204" width="156" height="8" rx="4" fill="#2E7D5B"/>
+  <rect x="40" y="248" width="132" height="96" rx="14" fill="#F0E8DD"/>
+  <text x="56" y="284" font-family="Arial, sans-serif" font-size="13" fill="#776F65">每秒收入</text>
+  <text x="56" y="320" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#2B2926">¥0.0042 / 秒</text>
+  <rect x="188" y="248" width="132" height="96" rx="14" fill="#F0E8DD"/>
+  <text x="204" y="284" font-family="Arial, sans-serif" font-size="13" fill="#776F65">每小时收入</text>
+  <text x="204" y="320" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#2B2926">¥15.20</text>
+  <rect x="40" y="364" width="280" height="82" rx="14" fill="#F0E8DD"/>
+  <text x="56" y="396" font-family="Arial, sans-serif" font-size="13" fill="#776F65">当前状态</text>
+  <text x="56" y="430" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#2B2926">正在挣钱</text>
+  <text x="40" y="620" font-family="Arial, sans-serif" font-size="14" fill="#776F65">当前使用：月薪 4000 元，中国法定，09:00-18:00。</text>
+  <rect x="40" y="654" width="280" height="48" rx="12" fill="#2E7D5B"/>
+  <text x="142" y="684" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">设置薪资</text>
+</svg>
