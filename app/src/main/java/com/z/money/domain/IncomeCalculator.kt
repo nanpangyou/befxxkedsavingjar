@@ -30,6 +30,8 @@ data class WorkSchedule(
     val workStart: LocalTime = LocalTime.of(9, 0),
     val workEnd: LocalTime = LocalTime.of(17, 0),
     val workDays: Set<DayOfWeek> = DEFAULT_WORK_DAYS,
+    val extraWorkDates: Set<LocalDate> = emptySet(),
+    val offDates: Set<LocalDate> = emptySet(),
 ) {
     init {
         require(annualWorkDays > 0) { "annualWorkDays must be greater than 0" }
@@ -37,7 +39,11 @@ data class WorkSchedule(
         require(workDays.isNotEmpty()) { "workDays must not be empty" }
     }
 
-    fun isWorkday(date: LocalDate): Boolean = date.dayOfWeek in workDays
+    fun isWorkday(date: LocalDate): Boolean = when {
+        date in extraWorkDates -> true
+        date in offDates -> false
+        else -> date.dayOfWeek in workDays
+    }
 
     fun workdaySeconds(): Long = Duration.between(workStart, workEnd).seconds
 

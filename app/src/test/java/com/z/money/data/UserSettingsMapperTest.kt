@@ -2,8 +2,11 @@ package com.z.money.data
 
 import com.z.money.domain.SalaryPeriod
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.DayOfWeek
+import java.time.LocalDate
 
 class UserSettingsMapperTest {
     @Test
@@ -81,5 +84,24 @@ class UserSettingsMapperTest {
         val schedule = settings.toWorkSchedule()
 
         assertEquals(setOf(DayOfWeek.WEDNESDAY), schedule.workDays)
+    }
+
+    @Test
+    fun chinaLegalCalendarOverridesDefaultWorkdays() {
+        val holiday = LocalDate.of(2026, 1, 1)
+        val adjustedWorkday = LocalDate.of(2026, 1, 3)
+        val settings = UserSettings(
+            workdayMode = WorkdayMode.ChinaLegal,
+            chinaLegalCalendar = ChinaLegalCalendar(
+                year = 2026,
+                offDates = setOf(holiday),
+                extraWorkDates = setOf(adjustedWorkday),
+            ),
+        )
+
+        val schedule = settings.toWorkSchedule()
+
+        assertFalse(schedule.isWorkday(holiday))
+        assertTrue(schedule.isWorkday(adjustedWorkday))
     }
 }

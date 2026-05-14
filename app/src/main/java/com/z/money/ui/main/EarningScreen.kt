@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.z.money.data.SettingsRepository
 import com.z.money.data.UserSettings
+import com.z.money.data.WorkdayMode
 import com.z.money.data.toSalaryInput
 import com.z.money.data.toWorkSchedule
 import com.z.money.domain.EarningSnapshot
@@ -64,6 +65,7 @@ fun EarningScreen() {
     val settings = EarningSettings.fromUserSettings(persistedSettings)
     val scope = rememberCoroutineScope()
     var showingSettings by remember { mutableStateOf(false) }
+    var legalCalendarStatus by remember { mutableStateOf("") }
     var now by remember { mutableStateOf(LocalDateTime.now()) }
 
     LaunchedEffect(Unit) {
@@ -73,9 +75,30 @@ fun EarningScreen() {
         }
     }
 
+    LaunchedEffect(persistedSettings.workdayMode, persistedSettings.chinaLegalCalendar, now.year) {
+        if (
+            persistedSettings.workdayMode == WorkdayMode.ChinaLegal &&
+            persistedSettings.chinaLegalCalendar?.isAvailableFor(now.year) != true
+        ) {
+            legalCalendarStatus = "\u6b63\u5728\u540c\u6b65 ${now.year}"
+            runCatching {
+                repository.refreshChinaLegalCalendar(now.year)
+            }.onSuccess {
+                legalCalendarStatus = "${now.year} \u5df2\u540c\u6b65"
+            }.onFailure {
+                legalCalendarStatus = "\u540c\u6b65\u5931\u8d25\uff0c\u5df2\u4f7f\u7528\u56fa\u5b9a\u5de5\u4f5c\u65e5"
+            }
+        } else if (persistedSettings.workdayMode == WorkdayMode.ChinaLegal) {
+            legalCalendarStatus = "${now.year} \u5df2\u540c\u6b65"
+        } else {
+            legalCalendarStatus = ""
+        }
+    }
+
     if (showingSettings) {
         SettingsContent(
             settings = settings,
+            legalCalendarStatus = legalCalendarStatus,
             onSave = { draft ->
                 scope.launch {
                     repository.save(draft.toUserSettings())
@@ -187,6 +210,7 @@ private fun EarningContent(
 @Composable
 private fun SettingsContent(
     settings: EarningSettings,
+    legalCalendarStatus: String,
     onSave: (EarningSettings) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -218,17 +242,37 @@ private fun SettingsContent(
                 }
             }
 
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                WorkdayMode.entries.forEach { mode ->
+                    FilterChip(
+                        selected = draft.workdayMode == mode,
+                        onClick = { draft = draft.copy(workdayMode = mode) },
+                        label = { Text(text = mode.label) },
+                    )
+                }
+            }
+
+            if (legalCalendarStatus.isNotBlank()) {
+                Text(
+                    text = legalCalendarStatus,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
             SettingsNumberField(
                 label = "\u85aa\u8d44\u91d1\u989d",
                 value = draft.salaryAmount,
                 onValueChange = { draft = draft.copy(salaryAmount = it) },
             )
 
-            SettingsNumberField(
-                label = "\u5e74\u5de5\u4f5c\u65e5",
-                value = draft.annualWorkDays,
-                onValueChange = { draft = draft.copy(annualWorkDays = it) },
-            )
+            if (draft.workdayMode == WorkdayMode.FixedWeekly) {
+                SettingsNumberField(
+                    label = "\u5e74\u5de5\u4f5c\u65e5",
+                    value = draft.annualWorkDays,
+                    onValueChange = { draft = draft.copy(annualWorkDays = it) },
+                )
+            }
 
             SettingsTimeDropdown(
                 label = "\u4e0a\u73ed\u65f6\u95f4",
@@ -242,10 +286,12 @@ private fun SettingsContent(
                 onMinutesChange = { draft = draft.copy(workEndMinutes = it) },
             )
 
-            WorkDaysSelector(
-                selectedDays = draft.workDays,
-                onSelectedDaysChange = { draft = draft.copy(workDays = it) },
-            )
+            if (draft.workdayMode == WorkdayMode.FixedWeekly) {
+                WorkDaysSelector(
+                    selectedDays = draft.workDays,
+                    onSelectedDaysChange = { draft = draft.copy(workDays = it) },
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -473,7 +519,9 @@ private data class EarningSettings(
     val annualWorkDays: String = "250",
     val workStartMinutes: Int = 9 * MINUTES_PER_HOUR,
     val workEndMinutes: Int = 17 * MINUTES_PER_HOUR,
+    val workdayMode: WorkdayMode = WorkdayMode.FixedWeekly,
     val workDays: Set<DayOfWeek> = UserSettings().workDays,
+    val chinaLegalCalendar: com.z.money.data.ChinaLegalCalendar? = null,
 ) {
     val summaryText: String
         get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${annualWorkDays.ifBlank { "0" }} \u4e2a\u5de5\u4f5c\u65e5\uff0c${workStartMinutes.toTimeText()}-${workEndMinutes.toTimeText()}\u3002"
@@ -489,7 +537,9 @@ private data class EarningSettings(
             annualWorkDays = annualWorkDays.toIntOrNull()?.coerceAtLeast(1) ?: 1,
             workStartMinutes = workStartMinutes,
             workEndMinutes = workEndMinutes,
+            workdayMode = workdayMode,
             workDays = workDays,
+            chinaLegalCalendar = chinaLegalCalendar,
         )
     }
 
@@ -501,7 +551,9 @@ private data class EarningSettings(
                 annualWorkDays = settings.annualWorkDays.toString(),
                 workStartMinutes = settings.workStartMinutes,
                 workEndMinutes = settings.workEndMinutes,
+                workdayMode = settings.workdayMode,
                 workDays = settings.workDays,
+                chinaLegalCalendar = settings.chinaLegalCalendar,
             )
         }
     }
@@ -529,6 +581,12 @@ private val SalaryPeriod.label: String
     get() = when (this) {
         SalaryPeriod.Monthly -> "\u6708\u85aa"
         SalaryPeriod.Annual -> "\u5e74\u85aa"
+    }
+
+private val WorkdayMode.label: String
+    get() = when (this) {
+        WorkdayMode.FixedWeekly -> "\u6bcf\u5468\u56fa\u5b9a"
+        WorkdayMode.ChinaLegal -> "\u4e2d\u56fd\u6cd5\u5b9a"
     }
 
 private val DayOfWeek.shortLabel: String

@@ -8,50 +8,75 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.z.money.domain.SalaryPeriod
 import java.time.DayOfWeek
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 private val Context.settingsDataStore by preferencesDataStore(name = "settings")
 
+private object SettingsKeys {
+    val salaryPeriod = stringPreferencesKey("salary_period")
+    val salaryAmountYuan = doublePreferencesKey("salary_amount_yuan")
+    val annualWorkDays = intPreferencesKey("annual_work_days")
+    val workStartMinutes = intPreferencesKey("work_start_minutes")
+    val workEndMinutes = intPreferencesKey("work_end_minutes")
+    val workdayMode = stringPreferencesKey("workday_mode")
+    val workDays = stringPreferencesKey("work_days")
+    val chinaLegalYear = intPreferencesKey("china_legal_year")
+    val chinaLegalExtraWorkDates = stringPreferencesKey("china_legal_extra_work_dates")
+    val chinaLegalOffDates = stringPreferencesKey("china_legal_off_dates")
+}
+
 class SettingsRepository(
     private val context: Context,
+    private val holidayService: ChinaHolidayService = ChinaHolidayService(),
 ) {
     val settings: Flow<UserSettings> = context.settingsDataStore.data.map { preferences ->
         UserSettings(
             salaryPeriod = SalaryPeriod.entries.firstOrNull {
-                it.name == preferences[Keys.salaryPeriod]
+                it.name == preferences[SettingsKeys.salaryPeriod]
             } ?: UserSettings().salaryPeriod,
-            salaryAmountYuan = preferences[Keys.salaryAmountYuan]
+            salaryAmountYuan = preferences[SettingsKeys.salaryAmountYuan]
                 ?: UserSettings().salaryAmountYuan,
-            annualWorkDays = preferences[Keys.annualWorkDays]
+            annualWorkDays = preferences[SettingsKeys.annualWorkDays]
                 ?: UserSettings().annualWorkDays,
-            workStartMinutes = preferences[Keys.workStartMinutes]
+            workStartMinutes = preferences[SettingsKeys.workStartMinutes]
                 ?: UserSettings().workStartMinutes,
-            workEndMinutes = preferences[Keys.workEndMinutes]
+            workEndMinutes = preferences[SettingsKeys.workEndMinutes]
                 ?: UserSettings().workEndMinutes,
-            workDays = preferences[Keys.workDays]?.toWorkDays()
+            workdayMode = WorkdayMode.entries.firstOrNull {
+                it.name == preferences[SettingsKeys.workdayMode]
+            } ?: UserSettings().workdayMode,
+            workDays = preferences[SettingsKeys.workDays]?.toWorkDays()
                 ?: UserSettings().workDays,
+            chinaLegalCalendar = preferences.toChinaLegalCalendar(),
         )
     }
 
     suspend fun save(settings: UserSettings) {
         context.settingsDataStore.edit { preferences ->
-            preferences[Keys.salaryPeriod] = settings.salaryPeriod.name
-            preferences[Keys.salaryAmountYuan] = settings.salaryAmountYuan
-            preferences[Keys.annualWorkDays] = settings.annualWorkDays
-            preferences[Keys.workStartMinutes] = settings.workStartMinutes
-            preferences[Keys.workEndMinutes] = settings.workEndMinutes
-            preferences[Keys.workDays] = settings.workDays.toPreferenceValue()
+            preferences[SettingsKeys.salaryPeriod] = settings.salaryPeriod.name
+            preferences[SettingsKeys.salaryAmountYuan] = settings.salaryAmountYuan
+            preferences[SettingsKeys.annualWorkDays] = settings.annualWorkDays
+            preferences[SettingsKeys.workStartMinutes] = settings.workStartMinutes
+            preferences[SettingsKeys.workEndMinutes] = settings.workEndMinutes
+            preferences[SettingsKeys.workdayMode] = settings.workdayMode.name
+            preferences[SettingsKeys.workDays] = settings.workDays.toPreferenceValue()
+            settings.chinaLegalCalendar?.let { calendar ->
+                preferences[SettingsKeys.chinaLegalYear] = calendar.year
+                preferences[SettingsKeys.chinaLegalExtraWorkDates] = calendar.extraWorkDates.toDateListValue()
+                preferences[SettingsKeys.chinaLegalOffDates] = calendar.offDates.toDateListValue()
+            }
         }
     }
 
-    private object Keys {
-        val salaryPeriod = stringPreferencesKey("salary_period")
-        val salaryAmountYuan = doublePreferencesKey("salary_amount_yuan")
-        val annualWorkDays = intPreferencesKey("annual_work_days")
-        val workStartMinutes = intPreferencesKey("work_start_minutes")
-        val workEndMinutes = intPreferencesKey("work_end_minutes")
-        val workDays = stringPreferencesKey("work_days")
+    suspend fun refreshChinaLegalCalendar(year: Int) {
+        val calendar = holidayService.fetchCalendar(year)
+        context.settingsDataStore.edit { preferences ->
+            preferences[SettingsKeys.chinaLegalYear] = calendar.year
+            preferences[SettingsKeys.chinaLegalExtraWorkDates] = calendar.extraWorkDates.toDateListValue()
+            preferences[SettingsKeys.chinaLegalOffDates] = calendar.offDates.toDateListValue()
+        }
     }
 }
 
@@ -67,4 +92,25 @@ private fun String.toWorkDays(): Set<DayOfWeek> {
         .toSet()
 
     return days.ifEmpty { UserSettings().workDays }
+}
+
+private fun androidx.datastore.preferences.core.Preferences.toChinaLegalCalendar(): ChinaLegalCalendar? {
+    val year = this[SettingsKeys.chinaLegalYear] ?: return null
+    return ChinaLegalCalendar(
+        year = year,
+        extraWorkDates = this[SettingsKeys.chinaLegalExtraWorkDates].toDateSet(),
+        offDates = this[SettingsKeys.chinaLegalOffDates].toDateSet(),
+    )
+}
+
+private fun Set<LocalDate>.toDateListValue(): String {
+    return sorted().joinToString(",") { it.toString() }
+}
+
+private fun String?.toDateSet(): Set<LocalDate> {
+    return this
+        ?.split(",")
+        ?.mapNotNull { value -> value.takeIf { it.isNotBlank() }?.let(LocalDate::parse) }
+        ?.toSet()
+        ?: emptySet()
 }

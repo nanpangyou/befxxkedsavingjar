@@ -12,14 +12,34 @@ fun UserSettings.toSalaryInput(): SalaryInput {
 }
 
 fun UserSettings.toWorkSchedule(): WorkSchedule {
+    val activeCalendar = chinaLegalCalendar?.takeIf {
+        workdayMode == WorkdayMode.ChinaLegal
+    }
+
     return WorkSchedule(
-        annualWorkDays = annualWorkDays.coerceAtLeast(1),
+        annualWorkDays = activeCalendar?.annualWorkDays() ?: annualWorkDays.coerceAtLeast(1),
         workStart = workStartMinutes.toLocalTime(),
         workEnd = workEndMinutes.toLocalTime().takeIf {
             it > workStartMinutes.toLocalTime()
         } ?: LocalTime.of(23, 59),
         workDays = workDays.ifEmpty { UserSettings().workDays },
+        extraWorkDates = activeCalendar?.extraWorkDates ?: emptySet(),
+        offDates = activeCalendar?.offDates ?: emptySet(),
     )
+}
+
+private fun ChinaLegalCalendar.annualWorkDays(): Int {
+    val start = java.time.LocalDate.of(year, 1, 1)
+    val endExclusive = start.plusYears(1)
+    return generateSequence(start) { date ->
+        date.plusDays(1).takeIf { it < endExclusive }
+    }.count { date ->
+        when {
+            date in extraWorkDates -> true
+            date in offDates -> false
+            else -> date.dayOfWeek in UserSettings().workDays
+        }
+    }
 }
 
 private fun Int.toLocalTime(): LocalTime {

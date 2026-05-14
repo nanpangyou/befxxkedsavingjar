@@ -10,5 +10,7 @@ data class UserSettings(
     val annualWorkDays: Int = 250,
     val workStartMinutes: Int = 9 * 60,
     val workEndMinutes: Int = 17 * 60,
+    val workdayMode: WorkdayMode = WorkdayMode.FixedWeekly,
     val workDays: Set<DayOfWeek> = WorkSchedule.DEFAULT_WORK_DAYS,
+    val chinaLegalCalendar: ChinaLegalCalendar? = null,
 )
