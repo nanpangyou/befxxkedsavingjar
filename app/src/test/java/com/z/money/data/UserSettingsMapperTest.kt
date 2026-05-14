@@ -3,6 +3,7 @@ package com.z.money.data
 import com.z.money.domain.SalaryPeriod
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.time.DayOfWeek
 
 class UserSettingsMapperTest {
     @Test
@@ -69,5 +70,16 @@ class UserSettingsMapperTest {
         assertEquals(23, schedule.workEnd.hour)
         assertEquals(59, schedule.workEnd.minute)
         assertEquals(59, schedule.workEnd.second)
+    }
+
+    @Test
+    fun mapsCustomWorkDays() {
+        val settings = UserSettings(
+            workDays = setOf(DayOfWeek.WEDNESDAY),
+        )
+
+        val schedule = settings.toWorkSchedule()
+
+        assertEquals(setOf(DayOfWeek.WEDNESDAY), schedule.workDays)
     }
 }

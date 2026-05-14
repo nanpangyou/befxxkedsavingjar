@@ -1,6 +1,8 @@
 package com.z.money.data
 
 import com.z.money.domain.SalaryPeriod
+import com.z.money.domain.WorkSchedule
+import java.time.DayOfWeek
 
 data class UserSettings(
     val salaryPeriod: SalaryPeriod = SalaryPeriod.Monthly,
@@ -8,4 +10,5 @@ data class UserSettings(
     val annualWorkDays: Int = 250,
     val workStartMinutes: Int = 9 * 60,
     val workEndMinutes: Int = 17 * 60,
+    val workDays: Set<DayOfWeek> = WorkSchedule.DEFAULT_WORK_DAYS,
 )

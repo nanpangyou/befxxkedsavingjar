@@ -18,6 +18,7 @@ fun UserSettings.toWorkSchedule(): WorkSchedule {
         workEnd = workEndMinutes.toLocalTime().takeIf {
             it > workStartMinutes.toLocalTime()
         } ?: LocalTime.of(23, 59),
+        workDays = workDays.ifEmpty { UserSettings().workDays },
     )
 }
 

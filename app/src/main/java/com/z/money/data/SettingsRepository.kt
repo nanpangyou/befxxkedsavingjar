@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.z.money.domain.SalaryPeriod
+import java.time.DayOfWeek
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -28,6 +29,8 @@ class SettingsRepository(
                 ?: UserSettings().workStartMinutes,
             workEndMinutes = preferences[Keys.workEndMinutes]
                 ?: UserSettings().workEndMinutes,
+            workDays = preferences[Keys.workDays]?.toWorkDays()
+                ?: UserSettings().workDays,
         )
     }
 
@@ -38,6 +41,7 @@ class SettingsRepository(
             preferences[Keys.annualWorkDays] = settings.annualWorkDays
             preferences[Keys.workStartMinutes] = settings.workStartMinutes
             preferences[Keys.workEndMinutes] = settings.workEndMinutes
+            preferences[Keys.workDays] = settings.workDays.toPreferenceValue()
         }
     }
 
@@ -47,5 +51,20 @@ class SettingsRepository(
         val annualWorkDays = intPreferencesKey("annual_work_days")
         val workStartMinutes = intPreferencesKey("work_start_minutes")
         val workEndMinutes = intPreferencesKey("work_end_minutes")
+        val workDays = stringPreferencesKey("work_days")
     }
+}
+
+private fun Set<DayOfWeek>.toPreferenceValue(): String {
+    return sortedBy { it.value }.joinToString(",") { it.name }
+}
+
+private fun String.toWorkDays(): Set<DayOfWeek> {
+    val days = split(",")
+        .mapNotNull { value ->
+            DayOfWeek.entries.firstOrNull { it.name == value }
+        }
+        .toSet()
+
+    return days.ifEmpty { UserSettings().workDays }
 }

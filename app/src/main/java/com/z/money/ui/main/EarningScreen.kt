@@ -2,6 +2,8 @@ package com.z.money.ui.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,6 +52,7 @@ import com.z.money.ui.theme.MoneyTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
+import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.util.Locale
 
@@ -239,6 +242,11 @@ private fun SettingsContent(
                 onMinutesChange = { draft = draft.copy(workEndMinutes = it) },
             )
 
+            WorkDaysSelector(
+                selectedDays = draft.workDays,
+                onSelectedDaysChange = { draft = draft.copy(workDays = it) },
+            )
+
             Spacer(modifier = Modifier.weight(1f))
 
             Row(
@@ -257,6 +265,41 @@ private fun SettingsContent(
                 ) {
                     Text(text = "\u4fdd\u5b58")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun WorkDaysSelector(
+    selectedDays: Set<DayOfWeek>,
+    onSelectedDaysChange: (Set<DayOfWeek>) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "\u5de5\u4f5c\u65e5",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelLarge,
+        )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            DayOfWeek.entries.forEach { day ->
+                FilterChip(
+                    selected = day in selectedDays,
+                    onClick = {
+                        val updatedDays = if (day in selectedDays) {
+                            selectedDays - day
+                        } else {
+                            selectedDays + day
+                        }
+                        onSelectedDaysChange(updatedDays.ifEmpty { selectedDays })
+                    },
+                    label = { Text(text = day.shortLabel) },
+                )
             }
         }
     }
@@ -430,6 +473,7 @@ private data class EarningSettings(
     val annualWorkDays: String = "250",
     val workStartMinutes: Int = 9 * MINUTES_PER_HOUR,
     val workEndMinutes: Int = 17 * MINUTES_PER_HOUR,
+    val workDays: Set<DayOfWeek> = UserSettings().workDays,
 ) {
     val summaryText: String
         get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${annualWorkDays.ifBlank { "0" }} \u4e2a\u5de5\u4f5c\u65e5\uff0c${workStartMinutes.toTimeText()}-${workEndMinutes.toTimeText()}\u3002"
@@ -445,6 +489,7 @@ private data class EarningSettings(
             annualWorkDays = annualWorkDays.toIntOrNull()?.coerceAtLeast(1) ?: 1,
             workStartMinutes = workStartMinutes,
             workEndMinutes = workEndMinutes,
+            workDays = workDays,
         )
     }
 
@@ -456,6 +501,7 @@ private data class EarningSettings(
                 annualWorkDays = settings.annualWorkDays.toString(),
                 workStartMinutes = settings.workStartMinutes,
                 workEndMinutes = settings.workEndMinutes,
+                workDays = settings.workDays,
             )
         }
     }
@@ -483,6 +529,17 @@ private val SalaryPeriod.label: String
     get() = when (this) {
         SalaryPeriod.Monthly -> "\u6708\u85aa"
         SalaryPeriod.Annual -> "\u5e74\u85aa"
+    }
+
+private val DayOfWeek.shortLabel: String
+    get() = when (this) {
+        DayOfWeek.MONDAY -> "\u4e00"
+        DayOfWeek.TUESDAY -> "\u4e8c"
+        DayOfWeek.WEDNESDAY -> "\u4e09"
+        DayOfWeek.THURSDAY -> "\u56db"
+        DayOfWeek.FRIDAY -> "\u4e94"
+        DayOfWeek.SATURDAY -> "\u516d"
+        DayOfWeek.SUNDAY -> "\u65e5"
     }
 
 @Preview(showBackground = true)
