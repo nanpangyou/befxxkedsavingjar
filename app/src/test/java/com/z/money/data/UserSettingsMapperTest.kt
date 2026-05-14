@@ -23,14 +23,21 @@ class UserSettingsMapperTest {
     }
 
     @Test
-    fun clampsScheduleValuesToValidMinimums() {
+    fun fixedWeeklyModeIgnoresManualAnnualWorkDays() {
         val settings = UserSettings(
+            workdayMode = WorkdayMode.FixedWeekly,
             annualWorkDays = -10,
         )
+        val expectedWorkDays = UserSettings().workDays.sumOf { dayOfWeek ->
+            countWeekdaysInYear(
+                year = LocalDate.now().year,
+                dayOfWeek = dayOfWeek,
+            )
+        }
 
         val schedule = settings.toWorkSchedule()
 
-        assertEquals(1, schedule.annualWorkDays)
+        assertEquals(expectedWorkDays, schedule.annualWorkDays)
     }
 
     @Test
@@ -78,12 +85,29 @@ class UserSettingsMapperTest {
     @Test
     fun mapsCustomWorkDays() {
         val settings = UserSettings(
+            workdayMode = WorkdayMode.FixedWeekly,
             workDays = setOf(DayOfWeek.WEDNESDAY),
         )
 
         val schedule = settings.toWorkSchedule()
 
         assertEquals(setOf(DayOfWeek.WEDNESDAY), schedule.workDays)
+    }
+
+    @Test
+    fun fixedWeeklyModeCalculatesAnnualWorkDaysFromSelectedWeekdays() {
+        val settings = UserSettings(
+            workdayMode = WorkdayMode.FixedWeekly,
+            workDays = setOf(DayOfWeek.WEDNESDAY),
+        )
+        val expectedWorkDays = countWeekdaysInYear(
+            year = LocalDate.now().year,
+            dayOfWeek = DayOfWeek.WEDNESDAY,
+        )
+
+        val schedule = settings.toWorkSchedule()
+
+        assertEquals(expectedWorkDays, schedule.annualWorkDays)
     }
 
     @Test
@@ -103,5 +127,21 @@ class UserSettingsMapperTest {
 
         assertFalse(schedule.isWorkday(holiday))
         assertTrue(schedule.isWorkday(adjustedWorkday))
+    }
+
+    @Test
+    fun defaultSettingsUseChinaLegalMode() {
+        assertEquals(WorkdayMode.ChinaLegal, UserSettings().workdayMode)
+    }
+
+    private fun countWeekdaysInYear(
+        year: Int,
+        dayOfWeek: DayOfWeek,
+    ): Int {
+        val start = LocalDate.of(year, 1, 1)
+        val endExclusive = start.plusYears(1)
+        return generateSequence(start) { date ->
+            date.plusDays(1).takeIf { it < endExclusive }
+        }.count { it.dayOfWeek == dayOfWeek }
     }
 }

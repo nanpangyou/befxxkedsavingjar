@@ -266,14 +266,6 @@ private fun SettingsContent(
                 onValueChange = { draft = draft.copy(salaryAmount = it) },
             )
 
-            if (draft.workdayMode == WorkdayMode.FixedWeekly) {
-                SettingsNumberField(
-                    label = "\u5e74\u5de5\u4f5c\u65e5",
-                    value = draft.annualWorkDays,
-                    onValueChange = { draft = draft.copy(annualWorkDays = it) },
-                )
-            }
-
             SettingsTimeDropdown(
                 label = "\u4e0a\u73ed\u65f6\u95f4",
                 minutes = draft.workStartMinutes,
@@ -516,15 +508,14 @@ private fun fractionDigitsForCents(cents: Double): Int {
 private data class EarningSettings(
     val salaryPeriod: SalaryPeriod = SalaryPeriod.Monthly,
     val salaryAmount: String = "10000",
-    val annualWorkDays: String = "250",
     val workStartMinutes: Int = 9 * MINUTES_PER_HOUR,
     val workEndMinutes: Int = 17 * MINUTES_PER_HOUR,
-    val workdayMode: WorkdayMode = WorkdayMode.FixedWeekly,
+    val workdayMode: WorkdayMode = WorkdayMode.ChinaLegal,
     val workDays: Set<DayOfWeek> = UserSettings().workDays,
     val chinaLegalCalendar: com.z.money.data.ChinaLegalCalendar? = null,
 ) {
     val summaryText: String
-        get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${annualWorkDays.ifBlank { "0" }} \u4e2a\u5de5\u4f5c\u65e5\uff0c${workStartMinutes.toTimeText()}-${workEndMinutes.toTimeText()}\u3002"
+        get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${workdayMode.label}\uff0c${workStartMinutes.toTimeText()}-${workEndMinutes.toTimeText()}\u3002"
 
     fun toSalaryInput() = toUserSettings().toSalaryInput()
 
@@ -534,7 +525,6 @@ private data class EarningSettings(
         return UserSettings(
             salaryPeriod = salaryPeriod,
             salaryAmountYuan = salaryAmount.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0,
-            annualWorkDays = annualWorkDays.toIntOrNull()?.coerceAtLeast(1) ?: 1,
             workStartMinutes = workStartMinutes,
             workEndMinutes = workEndMinutes,
             workdayMode = workdayMode,
@@ -548,7 +538,6 @@ private data class EarningSettings(
             return EarningSettings(
                 salaryPeriod = settings.salaryPeriod,
                 salaryAmount = settings.salaryAmountYuan.toDisplayString(),
-                annualWorkDays = settings.annualWorkDays.toString(),
                 workStartMinutes = settings.workStartMinutes,
                 workEndMinutes = settings.workEndMinutes,
                 workdayMode = settings.workdayMode,

@@ -2,6 +2,7 @@ package com.z.money.data
 
 import com.z.money.domain.SalaryInput
 import com.z.money.domain.WorkSchedule
+import java.time.LocalDate
 import java.time.LocalTime
 
 fun UserSettings.toSalaryInput(): SalaryInput {
@@ -17,7 +18,11 @@ fun UserSettings.toWorkSchedule(): WorkSchedule {
     }
 
     return WorkSchedule(
-        annualWorkDays = activeCalendar?.annualWorkDays() ?: annualWorkDays.coerceAtLeast(1),
+        annualWorkDays = activeCalendar?.annualWorkDays()
+            ?: calculateAnnualWorkDays(
+                year = LocalDate.now().year,
+                workDays = workDays.ifEmpty { UserSettings().workDays },
+            ),
         workStart = workStartMinutes.toLocalTime(),
         workEnd = workEndMinutes.toLocalTime().takeIf {
             it > workStartMinutes.toLocalTime()
@@ -26,6 +31,19 @@ fun UserSettings.toWorkSchedule(): WorkSchedule {
         extraWorkDates = activeCalendar?.extraWorkDates ?: emptySet(),
         offDates = activeCalendar?.offDates ?: emptySet(),
     )
+}
+
+private fun calculateAnnualWorkDays(
+    year: Int,
+    workDays: Set<java.time.DayOfWeek>,
+): Int {
+    val start = LocalDate.of(year, 1, 1)
+    val endExclusive = start.plusYears(1)
+    return generateSequence(start) { date ->
+        date.plusDays(1).takeIf { it < endExclusive }
+    }.count { date ->
+        date.dayOfWeek in workDays
+    }.coerceAtLeast(1)
 }
 
 private fun ChinaLegalCalendar.annualWorkDays(): Int {
