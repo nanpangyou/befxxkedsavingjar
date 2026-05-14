@@ -56,4 +56,18 @@ class UserSettingsMapperTest {
         assertEquals(23, schedule.workEnd.hour)
         assertEquals(59, schedule.workEnd.minute)
     }
+
+    @Test
+    fun mapsEndOfDayAsLastRepresentableTime() {
+        val settings = UserSettings(
+            workStartMinutes = 9 * 60,
+            workEndMinutes = 24 * 60,
+        )
+
+        val schedule = settings.toWorkSchedule()
+
+        assertEquals(23, schedule.workEnd.hour)
+        assertEquals(59, schedule.workEnd.minute)
+        assertEquals(59, schedule.workEnd.second)
+    }
 }

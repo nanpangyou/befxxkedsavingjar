@@ -284,7 +284,13 @@ private fun SettingsTimeDropdown(
     minutes: Int,
     onMinutesChange: (Int) -> Unit,
 ) {
-    val normalizedMinutes = minutes.coerceIn(0, MINUTES_PER_DAY - 1)
+    val maxMinutes = if (label == "\u4e0b\u73ed\u65f6\u95f4") {
+        MINUTES_PER_DAY
+    } else {
+        MINUTES_PER_DAY - 1
+    }
+    val maxHour = maxMinutes / MINUTES_PER_HOUR
+    val normalizedMinutes = minutes.coerceIn(0, maxMinutes)
     val hour = normalizedMinutes / MINUTES_PER_HOUR
     val minute = normalizedMinutes % MINUTES_PER_HOUR
 
@@ -300,14 +306,17 @@ private fun SettingsTimeDropdown(
         ) {
             TimePartDropdown(
                 value = hour,
-                options = (0..23).toList(),
+                options = (0..maxHour).toList(),
                 suffix = "\u65f6",
-                onValueChange = { onMinutesChange(it * MINUTES_PER_HOUR + minute) },
+                onValueChange = { selectedHour ->
+                    val selectedMinute = if (selectedHour == 24) 0 else minute
+                    onMinutesChange(selectedHour * MINUTES_PER_HOUR + selectedMinute)
+                },
                 modifier = Modifier.weight(1f),
             )
             TimePartDropdown(
                 value = minute,
-                options = MINUTE_OPTIONS,
+                options = if (hour == 24) listOf(0) else MINUTE_OPTIONS,
                 suffix = "\u5206",
                 onValueChange = { onMinutesChange(hour * MINUTES_PER_HOUR + it) },
                 modifier = Modifier.weight(1f),
@@ -461,11 +470,11 @@ private fun Double.toDisplayString(): String {
 }
 
 private fun Int.toTimeText(): String {
-    val minutes = coerceIn(0, MINUTES_PER_DAY - 1)
+    val minutes = coerceIn(0, MINUTES_PER_DAY)
     return "%02d:%02d".format(Locale.US, minutes / MINUTES_PER_HOUR, minutes % MINUTES_PER_HOUR)
 }
 
-private val MINUTE_OPTIONS = (0..55 step 5).toList()
+private val MINUTE_OPTIONS = (0..59).toList()
 private const val MINUTES_PER_HOUR = 60
 private const val MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
 private const val SECONDS_PER_HOUR = 3_600

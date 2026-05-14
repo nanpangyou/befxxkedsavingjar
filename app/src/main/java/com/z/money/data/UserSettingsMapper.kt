@@ -22,7 +22,9 @@ fun UserSettings.toWorkSchedule(): WorkSchedule {
 }
 
 private fun Int.toLocalTime(): LocalTime {
-    val minutes = coerceIn(0, MINUTES_PER_DAY - 1)
+    val minutes = coerceIn(0, MINUTES_PER_DAY)
+    if (minutes == MINUTES_PER_DAY) return LocalTime.MAX
+
     return LocalTime.of(minutes / MINUTES_PER_HOUR, minutes % MINUTES_PER_HOUR)
 }
 
