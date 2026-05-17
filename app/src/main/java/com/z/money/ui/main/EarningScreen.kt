@@ -1,30 +1,5 @@
 package com.z.money.ui.main
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,34 +8,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.z.money.data.ChinaLegalCalendarSource
 import com.z.money.data.SettingsRepository
 import com.z.money.data.UserSettings
-import com.z.money.data.ChinaLegalCalendarSource
 import com.z.money.data.WorkdayMode
-import com.z.money.data.WorkdayResolution
-import com.z.money.data.WorkdaySource
 import com.z.money.data.toSalaryInput
 import com.z.money.data.toWorkSchedule
 import com.z.money.data.toWorkdayResolution
-import com.z.money.domain.EarningSnapshot
 import com.z.money.domain.IncomeCalculator
-import com.z.money.domain.SalaryPeriod
-import com.z.money.domain.WorkdayStatus
-import com.z.money.ui.theme.MoneyTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.time.DayOfWeek
 import java.time.LocalDateTime
-import java.util.Locale
 
 @Composable
 fun EarningScreen() {
@@ -81,32 +40,11 @@ fun EarningScreen() {
     }
 
     LaunchedEffect(persistedSettings.workdayMode, persistedSettings.chinaLegalCalendar, now.year) {
-        if (
-            persistedSettings.workdayMode == WorkdayMode.ChinaLegal &&
-            persistedSettings.chinaLegalCalendar?.isAvailableFor(now.year) != true
-        ) {
-            legalCalendarStatus = "\u6b63\u5728\u540c\u6b65 ${now.year}"
-            runCatching {
-                repository.refreshChinaLegalCalendar(now.year)
-            }.onSuccess {
-                legalCalendarStatus = "${now.year} \u5df2\u540c\u6b65"
-            }.onFailure {
-                legalCalendarStatus = "\u540c\u6b65\u5931\u8d25\uff0c\u5df2\u4f7f\u7528\u56fa\u5b9a\u5de5\u4f5c\u65e5"
-            }
-        } else if (
-            persistedSettings.workdayMode == WorkdayMode.ChinaLegal &&
-            persistedSettings.chinaLegalCalendar?.isAvailableFor(now.year) == true
-        ) {
-            legalCalendarStatus = when (persistedSettings.chinaLegalCalendar?.source) {
-                ChinaLegalCalendarSource.BuiltIn -> "${now.year} \u5df2\u4f7f\u7528\u5185\u7f6e\u6cd5\u5b9a\u65e5\u5386"
-                ChinaLegalCalendarSource.Remote -> "${now.year} \u5df2\u540c\u6b65"
-                null -> ""
-            }
-        } else if (persistedSettings.workdayMode == WorkdayMode.ChinaLegal) {
-            legalCalendarStatus = "\u672a\u627e\u5230 ${now.year} \u6cd5\u5b9a\u65e5\u5386\uff0c\u5df2\u4f7f\u7528\u56fa\u5b9a\u5de5\u4f5c\u65e5"
-        } else {
-            legalCalendarStatus = ""
-        }
+        legalCalendarStatus = resolveLegalCalendarStatus(
+            settings = persistedSettings,
+            year = now.year,
+            refreshCalendar = { repository.refreshChinaLegalCalendar(now.year) },
+        )
     }
 
     if (showingSettings) {
@@ -115,14 +53,13 @@ fun EarningScreen() {
             legalCalendarStatus = legalCalendarStatus,
             onRefreshLegalCalendar = {
                 scope.launch {
-                    legalCalendarStatus = "\u6b63\u5728\u540c\u6b65 ${now.year}"
-                    runCatching {
+                    legalCalendarStatus = syncStatus(now.year)
+                    legalCalendarStatus = runCatching {
                         repository.refreshChinaLegalCalendar(now.year)
-                    }.onSuccess {
-                        legalCalendarStatus = "${now.year} \u5df2\u540c\u6b65"
-                    }.onFailure {
-                        legalCalendarStatus = "\u540c\u6b65\u5931\u8d25\uff0c\u5df2\u4f7f\u7528\u56fa\u5b9a\u5de5\u4f5c\u65e5"
-                    }
+                    }.fold(
+                        onSuccess = { syncedStatus(now.year) },
+                        onFailure = { syncFailedStatus },
+                    )
                 }
             },
             onSave = { draft ->
@@ -147,545 +84,24 @@ fun EarningScreen() {
     }
 }
 
-@Composable
-private fun EarningContent(
-    snapshot: EarningSnapshot,
-    workdayResolution: WorkdayResolution,
-    settings: EarningSettings,
-    onOpenSettings: () -> Unit,
-) {
-    val earningFractionDigits = fractionDigitsForCents(snapshot.centsPerSecond)
-
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = "\u4eca\u5929\u5df2\u7ecf\u8d5a\u5230",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = formatCurrency(
-                        cents = snapshot.earnedCentsToday,
-                        fractionDigits = earningFractionDigits,
-                    ),
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 56.sp,
-                )
-                Text(
-                    text = workdayResolution.source.label,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-
-            LinearProgressIndicator(
-                progress = { snapshot.progress.toFloat().coerceIn(0f, 1f) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp),
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                MetricTile(
-                    title = "\u6bcf\u79d2\u6536\u5165",
-                    value = "${
-                        formatCurrency(
-                            cents = snapshot.centsPerSecond,
-                            fractionDigits = earningFractionDigits,
-                        )
-                    } / \u79d2",
-                    modifier = Modifier.weight(1f),
-                )
-                MetricTile(
-                    title = "\u6bcf\u5c0f\u65f6\u6536\u5165",
-                    value = formatCurrency(snapshot.centsPerSecond * SECONDS_PER_HOUR),
-                    modifier = Modifier.weight(1f),
-                )
-            }
-
-            MetricTile(
-                title = "\u5f53\u524d\u72b6\u6001",
-                value = snapshot.status.label,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(
-                text = settings.summaryText,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-
-            Button(
-                onClick = onOpenSettings,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = "\u8bbe\u7f6e\u85aa\u8d44")
-            }
-        }
-    }
-}
-
-@Composable
-private fun SettingsContent(
-    settings: EarningSettings,
-    legalCalendarStatus: String,
-    onRefreshLegalCalendar: () -> Unit,
-    onSave: (EarningSettings) -> Unit,
-    onBack: () -> Unit,
-) {
-    var draft by remember(settings) { mutableStateOf(settings) }
-
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Text(
-                text = "\u85aa\u8d44\u8bbe\u7f6e",
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-
-            SettingsSection(title = "\u85aa\u8d44") {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SalaryPeriod.entries.forEach { period ->
-                        FilterChip(
-                            selected = draft.salaryPeriod == period,
-                            onClick = { draft = draft.copy(salaryPeriod = period) },
-                            label = { Text(text = period.label) },
-                        )
-                    }
-                }
-
-                SettingsNumberField(
-                    label = "\u85aa\u8d44\u91d1\u989d",
-                    value = draft.salaryAmount,
-                    onValueChange = { draft = draft.copy(salaryAmount = it) },
-                )
-            }
-
-            SettingsSection(title = "\u5de5\u4f5c\u65f6\u95f4") {
-                SettingsTimeDropdown(
-                    label = "\u4e0a\u73ed\u65f6\u95f4",
-                    minutes = draft.workStartMinutes,
-                    onMinutesChange = { draft = draft.copy(workStartMinutes = it) },
-                )
-
-                SettingsTimeDropdown(
-                    label = "\u4e0b\u73ed\u65f6\u95f4",
-                    minutes = draft.workEndMinutes,
-                    onMinutesChange = { draft = draft.copy(workEndMinutes = it) },
-                )
-            }
-
-            SettingsSection(title = "\u5de5\u4f5c\u65e5\u89c4\u5219") {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    WORKDAY_MODE_OPTIONS.forEach { mode ->
-                        FilterChip(
-                            selected = draft.workdayMode == mode,
-                            onClick = { draft = draft.copy(workdayMode = mode) },
-                            label = { Text(text = mode.label) },
-                        )
-                    }
-                }
-
-                if (draft.workdayMode == WorkdayMode.FixedWeekly) {
-                    WorkDaysSelector(
-                        selectedDays = draft.workDays,
-                        onSelectedDaysChange = { draft = draft.copy(workDays = it) },
-                    )
-                }
-            }
-
-            if (legalCalendarStatus.isNotBlank() && draft.workdayMode == WorkdayMode.ChinaLegal) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = legalCalendarStatus,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    OutlinedButton(onClick = onRefreshLegalCalendar) {
-                        Text(text = "\u91cd\u65b0\u540c\u6b65")
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                OutlinedButton(
-                    onClick = onBack,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(text = "\u8fd4\u56de")
-                }
-                Button(
-                    onClick = { onSave(draft) },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(text = "\u4fdd\u5b58")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SettingsSection(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(
-            text = title,
-            color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            content = content,
-        )
-    }
-}
-
-@Composable
-@OptIn(ExperimentalLayoutApi::class)
-private fun WorkDaysSelector(
-    selectedDays: Set<DayOfWeek>,
-    onSelectedDaysChange: (Set<DayOfWeek>) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = "\u5de5\u4f5c\u65e5",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelLarge,
-        )
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            DayOfWeek.entries.forEach { day ->
-                FilterChip(
-                    selected = day in selectedDays,
-                    onClick = {
-                        val updatedDays = if (day in selectedDays) {
-                            selectedDays - day
-                        } else {
-                            selectedDays + day
-                        }
-                        onSelectedDaysChange(updatedDays.ifEmpty { selectedDays })
-                    },
-                    label = { Text(text = day.shortLabel) },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SettingsNumberField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = { onValueChange(it.filter { char -> char.isDigit() || char == '.' }) },
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text(text = label) },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-    )
-}
-
-@Composable
-private fun SettingsTimeDropdown(
-    label: String,
-    minutes: Int,
-    onMinutesChange: (Int) -> Unit,
-) {
-    val maxMinutes = if (label == "\u4e0b\u73ed\u65f6\u95f4") {
-        MINUTES_PER_DAY
-    } else {
-        MINUTES_PER_DAY - 1
-    }
-    val maxHour = maxMinutes / MINUTES_PER_HOUR
-    val normalizedMinutes = minutes.coerceIn(0, maxMinutes)
-    val hour = normalizedMinutes / MINUTES_PER_HOUR
-    val minute = normalizedMinutes % MINUTES_PER_HOUR
-
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = label,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelLarge,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            TimePartDropdown(
-                value = hour,
-                options = (0..maxHour).toList(),
-                suffix = "\u65f6",
-                onValueChange = { selectedHour ->
-                    val selectedMinute = if (selectedHour == 24) 0 else minute
-                    onMinutesChange(selectedHour * MINUTES_PER_HOUR + selectedMinute)
-                },
-                modifier = Modifier.weight(1f),
-            )
-            TimePartDropdown(
-                value = minute,
-                options = if (hour == 24) listOf(0) else MINUTE_OPTIONS,
-                suffix = "\u5206",
-                onValueChange = { onMinutesChange(hour * MINUTES_PER_HOUR + it) },
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun TimePartDropdown(
-    value: Int,
-    options: List<Int>,
-    suffix: String,
-    onValueChange: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Column(modifier = modifier) {
-        OutlinedButton(
-            onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = "%02d %s".format(Locale.US, value, suffix))
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 280.dp),
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(text = "%02d %s".format(Locale.US, option, suffix)) },
-                    onClick = {
-                        expanded = false
-                        onValueChange(option)
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun MetricTile(
-    title: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        tonalElevation = 1.dp,
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.Start,
-        ) {
-            Text(
-                text = title,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelLarge,
-            )
-            Text(
-                text = value,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-    }
-}
-
-private val WorkdayStatus.label: String
-    get() = when (this) {
-        WorkdayStatus.NotWorkday -> "\u4eca\u5929\u4e0d\u662f\u5de5\u4f5c\u65e5"
-        WorkdayStatus.BeforeWork -> "\u8fd8\u6ca1\u5f00\u59cb\u4e0a\u73ed"
-        WorkdayStatus.Working -> "\u6b63\u5728\u6323\u94b1"
-        WorkdayStatus.AfterWork -> "\u4eca\u5929\u5df2\u7ecf\u4e0b\u73ed"
-    }
-
-private val WorkdaySource.label: String
-    get() = when (this) {
-        WorkdaySource.FixedWorkday -> "\u6bcf\u5468\u56fa\u5b9a\u5de5\u4f5c\u65e5"
-        WorkdaySource.FixedOffDay -> "\u6bcf\u5468\u56fa\u5b9a\u4f11\u606f\u65e5"
-        WorkdaySource.ChinaLegalFallbackWorkday -> "\u4e2d\u56fd\u6cd5\u5b9a\uff08\u672a\u540c\u6b65\uff0c\u56fa\u5b9a\u5de5\u4f5c\u65e5\uff09"
-        WorkdaySource.ChinaLegalFallbackOffDay -> "\u4e2d\u56fd\u6cd5\u5b9a\uff08\u672a\u540c\u6b65\uff0c\u56fa\u5b9a\u4f11\u606f\u65e5\uff09"
-        WorkdaySource.ChinaLegalRegularWorkday -> "\u4e2d\u56fd\u6cd5\u5b9a\u666e\u901a\u5de5\u4f5c\u65e5"
-        WorkdaySource.ChinaLegalRegularOffDay -> "\u4e2d\u56fd\u6cd5\u5b9a\u666e\u901a\u4f11\u606f\u65e5"
-        WorkdaySource.ChinaLegalAdjustedWorkday -> "\u8c03\u4f11\u8865\u73ed\u65e5"
-        WorkdaySource.ChinaLegalHoliday -> "\u6cd5\u5b9a\u4f11\u606f\u65e5"
-    }
-
-private fun formatCurrency(cents: Double): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale.CHINA)
-    return formatter.format(cents / 100.0)
-}
-
-private fun formatCurrency(
-    cents: Double,
-    fractionDigits: Int,
+private suspend fun resolveLegalCalendarStatus(
+    settings: UserSettings,
+    year: Int,
+    refreshCalendar: suspend () -> Unit,
 ): String {
-    return NumberFormat.getCurrencyInstance(Locale.CHINA).apply {
-        minimumFractionDigits = fractionDigits
-        maximumFractionDigits = fractionDigits
-    }.format(cents / 100.0)
-}
+    if (settings.workdayMode != WorkdayMode.ChinaLegal) return ""
 
-private fun fractionDigitsForCents(cents: Double): Int {
-    val yuan = cents / 100.0
-    return when {
-        yuan >= 0.01 -> 2
-        yuan >= 0.0001 -> 4
-        else -> 6
-    }
-}
-
-private data class EarningSettings(
-    val salaryPeriod: SalaryPeriod = SalaryPeriod.Monthly,
-    val salaryAmount: String = "10000",
-    val workStartMinutes: Int = 9 * MINUTES_PER_HOUR,
-    val workEndMinutes: Int = 17 * MINUTES_PER_HOUR,
-    val workdayMode: WorkdayMode = WorkdayMode.ChinaLegal,
-    val workDays: Set<DayOfWeek> = UserSettings().workDays,
-    val chinaLegalCalendar: com.z.money.data.ChinaLegalCalendar? = null,
-) {
-    val summaryText: String
-        get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${workdayMode.label}\uff0c${workStartMinutes.toTimeText()}-${workEndMinutes.toTimeText()}\u3002"
-
-    fun toSalaryInput() = toUserSettings().toSalaryInput()
-
-    fun toWorkSchedule() = toUserSettings().toWorkSchedule()
-
-    fun toUserSettings(): UserSettings {
-        return UserSettings(
-            salaryPeriod = salaryPeriod,
-            salaryAmountYuan = salaryAmount.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0,
-            workStartMinutes = workStartMinutes,
-            workEndMinutes = workEndMinutes,
-            workdayMode = workdayMode,
-            workDays = workDays,
-            chinaLegalCalendar = chinaLegalCalendar,
+    if (settings.chinaLegalCalendar?.isAvailableFor(year) != true) {
+        return runCatching {
+            refreshCalendar()
+        }.fold(
+            onSuccess = { syncedStatus(year) },
+            onFailure = { missingCalendarStatus(year) },
         )
     }
 
-    companion object {
-        fun fromUserSettings(settings: UserSettings): EarningSettings {
-            return EarningSettings(
-                salaryPeriod = settings.salaryPeriod,
-                salaryAmount = settings.salaryAmountYuan.toDisplayString(),
-                workStartMinutes = settings.workStartMinutes,
-                workEndMinutes = settings.workEndMinutes,
-                workdayMode = settings.workdayMode,
-                workDays = settings.workDays,
-                chinaLegalCalendar = settings.chinaLegalCalendar,
-            )
-        }
-    }
-}
-
-private fun Double.toDisplayString(): String {
-    return if (this % 1.0 == 0.0) {
-        toLong().toString()
-    } else {
-        toString()
-    }
-}
-
-private fun Int.toTimeText(): String {
-    val minutes = coerceIn(0, MINUTES_PER_DAY)
-    return "%02d:%02d".format(Locale.US, minutes / MINUTES_PER_HOUR, minutes % MINUTES_PER_HOUR)
-}
-
-private val MINUTE_OPTIONS = (0..59).toList()
-private val WORKDAY_MODE_OPTIONS = listOf(WorkdayMode.ChinaLegal, WorkdayMode.FixedWeekly)
-private const val MINUTES_PER_HOUR = 60
-private const val MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
-private const val SECONDS_PER_HOUR = 3_600
-
-private val SalaryPeriod.label: String
-    get() = when (this) {
-        SalaryPeriod.Monthly -> "\u6708\u85aa"
-        SalaryPeriod.Annual -> "\u5e74\u85aa"
-    }
-
-private val WorkdayMode.label: String
-    get() = when (this) {
-        WorkdayMode.FixedWeekly -> "\u6bcf\u5468\u56fa\u5b9a"
-        WorkdayMode.ChinaLegal -> "\u4e2d\u56fd\u6cd5\u5b9a"
-    }
-
-private val DayOfWeek.shortLabel: String
-    get() = when (this) {
-        DayOfWeek.MONDAY -> "\u4e00"
-        DayOfWeek.TUESDAY -> "\u4e8c"
-        DayOfWeek.WEDNESDAY -> "\u4e09"
-        DayOfWeek.THURSDAY -> "\u56db"
-        DayOfWeek.FRIDAY -> "\u4e94"
-        DayOfWeek.SATURDAY -> "\u516d"
-        DayOfWeek.SUNDAY -> "\u65e5"
-    }
-
-@Preview(showBackground = true)
-@Composable
-private fun EarningContentPreview() {
-    val settings = EarningSettings()
-    MoneyTheme {
-        EarningContent(
-            snapshot = IncomeCalculator.snapshot(
-                salary = settings.toSalaryInput(),
-                schedule = settings.toWorkSchedule(),
-                now = LocalDateTime.of(2026, 5, 13, 10, 30),
-            ),
-            workdayResolution = settings.toUserSettings().toWorkdayResolution(
-                LocalDateTime.of(2026, 5, 13, 10, 30).toLocalDate(),
-            ),
-            settings = settings,
-            onOpenSettings = {},
-        )
+    return when (settings.chinaLegalCalendar.source) {
+        ChinaLegalCalendarSource.BuiltIn -> builtInStatus(year)
+        ChinaLegalCalendarSource.Remote -> syncedStatus(year)
     }
 }
