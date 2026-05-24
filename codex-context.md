@@ -127,3 +127,9 @@ git push
 - v0.1.0 已完成手机测试、Git tag 和 GitHub Release。
 - 下一轮优先做“关于页面 + 版本号展示 + 反馈入口”。
 - 版本号从 BuildConfig.VERSION_NAME 读取，反馈入口指向 GitHub Issues。
+
+## 2026-05-24 v0.2.0 发布准备
+
+- v0.2.0 包含“关于页面 + 版本号展示 + 反馈入口”。
+- 发布版本号更新为 versionName 0.2.0，versionCode 2。
+- 发布前需要运行 testDebugUnitTest 和 assembleRelease，确认 signed release APK 可用后再提交、打 tag、发布 GitHub Release。
