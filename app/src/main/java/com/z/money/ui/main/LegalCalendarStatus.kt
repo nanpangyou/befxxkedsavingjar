@@ -1,5 +1,31 @@
 package com.z.money.ui.main
 
+import com.z.money.data.ChinaLegalCalendarSource
+import com.z.money.data.UserSettings
+import com.z.money.data.WorkdayMode
+
+suspend fun resolveLegalCalendarStatus(
+    settings: UserSettings,
+    year: Int,
+    refreshCalendar: suspend () -> Unit,
+): String {
+    if (settings.workdayMode != WorkdayMode.ChinaLegal) return ""
+
+    if (settings.chinaLegalCalendar?.isAvailableFor(year) != true) {
+        return runCatching {
+            refreshCalendar()
+        }.fold(
+            onSuccess = { syncedStatus(year) },
+            onFailure = { missingCalendarStatus(year) },
+        )
+    }
+
+    return when (settings.chinaLegalCalendar.source) {
+        ChinaLegalCalendarSource.BuiltIn -> builtInStatus(year)
+        ChinaLegalCalendarSource.Remote -> syncedStatus(year)
+    }
+}
+
 fun syncStatus(year: Int): String = "\u6b63\u5728\u540c\u6b65 $year"
 
 fun syncedStatus(year: Int): String = "$year \u5df2\u540c\u6b65"

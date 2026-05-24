@@ -9,10 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import com.z.money.data.ChinaLegalCalendarSource
+import com.z.money.data.BuiltInChinaLegalCalendars
 import com.z.money.data.SettingsRepository
 import com.z.money.data.UserSettings
-import com.z.money.data.WorkdayMode
 import com.z.money.data.toSalaryInput
 import com.z.money.data.toWorkSchedule
 import com.z.money.data.toWorkdayResolution
@@ -20,12 +19,18 @@ import com.z.money.domain.IncomeCalculator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.time.Year
 
 @Composable
 fun EarningScreen() {
     val context = LocalContext.current
     val repository = remember { SettingsRepository(context.applicationContext) }
-    val persistedSettings by repository.settings.collectAsState(initial = UserSettings())
+    val initialSettings = remember {
+        UserSettings(
+            chinaLegalCalendar = BuiltInChinaLegalCalendars.forYear(Year.now().value),
+        )
+    }
+    val persistedSettings by repository.settings.collectAsState(initial = initialSettings)
     val settings = EarningSettings.fromUserSettings(persistedSettings)
     val scope = rememberCoroutineScope()
     var showingSettings by remember { mutableStateOf(false) }
@@ -81,27 +86,5 @@ fun EarningScreen() {
             settings = settings,
             onOpenSettings = { showingSettings = true },
         )
-    }
-}
-
-private suspend fun resolveLegalCalendarStatus(
-    settings: UserSettings,
-    year: Int,
-    refreshCalendar: suspend () -> Unit,
-): String {
-    if (settings.workdayMode != WorkdayMode.ChinaLegal) return ""
-
-    if (settings.chinaLegalCalendar?.isAvailableFor(year) != true) {
-        return runCatching {
-            refreshCalendar()
-        }.fold(
-            onSuccess = { syncedStatus(year) },
-            onFailure = { missingCalendarStatus(year) },
-        )
-    }
-
-    return when (settings.chinaLegalCalendar.source) {
-        ChinaLegalCalendarSource.BuiltIn -> builtInStatus(year)
-        ChinaLegalCalendarSource.Remote -> syncedStatus(year)
     }
 }
