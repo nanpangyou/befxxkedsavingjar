@@ -114,3 +114,10 @@ git push
 3. 安装 release APK 到真机验证。
 4. 打 Git tag：`v0.1.0`。
 5. 后续考虑更正式的视觉设计和 README 真机截图。
+
+## 2026-05-24 发布记录
+
+- 已在本机生成 release/wnf-release.jks 和 keystore.properties；二者为本地忽略文件，不提交到 Git。
+- 已修复 release signing 的 storeFile 路径解析，签名文件路径以项目根目录为基准。
+- 已生成 app/build/outputs/apk/release/app-release.apk，并通过 apksigner 验证 v2 签名有效。
+- 下一步：提交并推送签名路径修复，然后创建并推送 Git tag v0.1.0。
