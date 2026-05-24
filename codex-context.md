@@ -10,6 +10,7 @@
 
 最近状态：用户反馈最新真机 Run 看上去没有明显问题，已在 2026-05-24 生成最新 debug APK。
 产品名已确定为“窝囊费计算器”，并开始替换默认 App 名称和 launcher icon。
+当前正在准备第一个版本 `v0.1.0`：已更新版本号，新增隐私说明，并配置 release signing 的本地读取方式。
 
 ## 已做决定
 
@@ -35,6 +36,8 @@
 - “每周固定”模式下，年工作日总数由所选星期自动计算，不再让用户手动输入。
 - 每秒收入和今日已赚使用同一套小数位精度，低金额时也要能看到数字变化。
 - App 显示名称使用“窝囊费计算器”。
+- 第一个正式测试版本使用 `versionName = "0.1.0"` 和 `versionCode = 1`。
+- release signing 从本地 `keystore.properties` 读取，真实 keystore 和密码不提交到 Git。
 
 ## 运行方式
 
@@ -97,6 +100,7 @@ git push
 - 不要提交 Android Studio 个人配置目录 `.idea/`。
 - 不要在没有用户要求时生成 release 签名配置。
 - 不要把真实密钥、token、签名密码写进仓库。
+- 不要提交 `keystore.properties`、`.jks` 或 `.keystore` 文件。
 - 不要把联网 API 测试放进默认单元测试流程，避免测试不稳定。
 - 不要把旧年份法定日历当成当前年份数据使用。
 - 不要恢复“每天工作 8 小时”的手动输入；工作时长由上下班时间自动计算。
@@ -105,7 +109,8 @@ git push
 
 优先级建议：
 
-1. 用户安装最新 debug APK 后继续收集真机反馈。
-2. 后续考虑 App 名称、图标和更正式的视觉设计。
-3. 如继续重构，可进一步拆分 `UserSettingsMapper.kt` 或补充更多边界测试。
-4. 准备 release 签名和版本号规划。
+1. 在本机创建 release keystore，并填写未提交的 `keystore.properties`。
+2. 运行 `assembleRelease` 生成 signed release APK。
+3. 安装 release APK 到真机验证。
+4. 打 Git tag：`v0.1.0`。
+5. 后续考虑更正式的视觉设计和 README 真机截图。
