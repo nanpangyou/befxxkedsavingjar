@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,7 @@ fun SettingsContent(
     onRefreshLegalCalendar: () -> Unit,
     onSave: (EarningSettings) -> Unit,
     onBack: () -> Unit,
+    onOpenAbout: () -> Unit,
 ) {
     var draft by remember(settings) { mutableStateOf(settings) }
 
@@ -75,6 +77,13 @@ fun SettingsContent(
             }
 
             Spacer(modifier = Modifier.weight(1f))
+
+            TextButton(
+                onClick = onOpenAbout,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(text = "\u5173\u4e8e\u7a9d\u56ca\u8d39\u8ba1\u7b97\u5668")
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

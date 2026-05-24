@@ -1,5 +1,7 @@
 package com.z.money.ui.main
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -9,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.z.money.BuildConfig
 import com.z.money.data.BuiltInChinaLegalCalendars
 import com.z.money.data.SettingsRepository
 import com.z.money.data.UserSettings
@@ -34,8 +37,14 @@ fun EarningScreen() {
     val settings = EarningSettings.fromUserSettings(persistedSettings)
     val scope = rememberCoroutineScope()
     var showingSettings by remember { mutableStateOf(false) }
+    var showingAbout by remember { mutableStateOf(false) }
     var legalCalendarStatus by remember { mutableStateOf("") }
     var now by remember { mutableStateOf(LocalDateTime.now()) }
+    val openUrl: (String) -> Unit = remember(context) {
+        { url ->
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }
+    }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -52,7 +61,15 @@ fun EarningScreen() {
         )
     }
 
-    if (showingSettings) {
+    if (showingAbout) {
+        AboutContent(
+            versionName = BuildConfig.VERSION_NAME,
+            onOpenPrivacy = { openUrl(PRIVACY_URL) },
+            onOpenGitHub = { openUrl(PROJECT_URL) },
+            onOpenFeedback = { openUrl(FEEDBACK_URL) },
+            onBack = { showingAbout = false },
+        )
+    } else if (showingSettings) {
         SettingsContent(
             settings = settings,
             legalCalendarStatus = legalCalendarStatus,
@@ -74,6 +91,7 @@ fun EarningScreen() {
                 }
             },
             onBack = { showingSettings = false },
+            onOpenAbout = { showingAbout = true },
         )
     } else {
         EarningContent(

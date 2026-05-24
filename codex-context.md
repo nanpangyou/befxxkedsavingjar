@@ -121,3 +121,9 @@ git push
 - 已修复 release signing 的 storeFile 路径解析，签名文件路径以项目根目录为基准。
 - 已生成 app/build/outputs/apk/release/app-release.apk，并通过 apksigner 验证 v2 签名有效。
 - 下一步：提交并推送签名路径修复，然后创建并推送 Git tag v0.1.0。
+
+## 2026-05-24 v0.2.0 开始
+
+- v0.1.0 已完成手机测试、Git tag 和 GitHub Release。
+- 下一轮优先做“关于页面 + 版本号展示 + 反馈入口”。
+- 版本号从 BuildConfig.VERSION_NAME 读取，反馈入口指向 GitHub Issues。
