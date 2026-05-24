@@ -99,12 +99,11 @@ git push
 
 优先级建议：
 
-1. 给 UI 关键格式化逻辑补更小的单元测试。
-2. 用真机跑一轮完整流程：
+1. 用真机跑一轮完整流程：
    - 设置月薪/年薪
    - 设置上下班时间
    - 切换中国法定/每周固定
    - 重启 App 验证 DataStore 持久化
-3. 准备一次 debug APK 测试包。
-4. 后续考虑 App 名称、图标和更正式的视觉设计。
-5. 如继续重构，可进一步拆分 `UserSettingsMapper.kt` 或给 DataStore mapper 增加专门测试。
+2. 准备一次 debug APK 测试包。
+3. 后续考虑 App 名称、图标和更正式的视觉设计。
+4. 如继续重构，可进一步拆分 `UserSettingsMapper.kt` 或补充更多边界测试。
