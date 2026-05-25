@@ -164,3 +164,8 @@ git push
 - 版本号更新为 versionName 0.3.0，versionCode 3。
 - README 已重写，重点介绍功能、版本迭代、项目结构、隐私和 Release 下载。
 - 发布前运行 testDebugUnitTest、assembleRelease 和 apksigner 验证，再创建 tag 和 GitHub Release。
+
+## 2026-05-25 分支策略
+
+- `dev` 作为日常开发分支，后续新功能、修复和重构默认在 `dev` 上进行。
+- `main` 只用于正式版本发布；发布时从 `dev` 合并到 `main`，更新版本号，打 tag，并创建 GitHub Release。
