@@ -1,4 +1,4 @@
-package com.z.money.ui.main
+package com.z.money.ui.settings
 
 import com.z.money.data.ChinaLegalCalendar
 import com.z.money.data.ThemeMode
@@ -7,6 +7,9 @@ import com.z.money.data.WorkdayMode
 import com.z.money.data.toSalaryInput
 import com.z.money.data.toWorkSchedule
 import com.z.money.domain.SalaryPeriod
+import com.z.money.ui.common.MINUTES_PER_HOUR
+import com.z.money.ui.common.label
+import com.z.money.ui.common.toTimeText
 import java.time.DayOfWeek
 
 data class EarningSettings(

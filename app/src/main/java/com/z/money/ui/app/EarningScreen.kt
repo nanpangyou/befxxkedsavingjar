@@ -1,33 +1,34 @@
-package com.z.money.ui.main
+package com.z.money.ui.app
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 import com.z.money.BuildConfig
 import com.z.money.data.BuiltInChinaLegalCalendars
 import com.z.money.data.SettingsRepository
-import com.z.money.data.ThemeMode
 import com.z.money.data.UserSettings
 import com.z.money.data.toSalaryInput
 import com.z.money.data.toWorkSchedule
 import com.z.money.data.toWorkdayResolution
 import com.z.money.domain.IncomeCalculator
+import com.z.money.ui.about.AboutContent
+import com.z.money.ui.home.EarningContent
+import com.z.money.ui.settings.EarningSettings
+import com.z.money.ui.settings.SettingsContent
+import com.z.money.ui.sync.resolveLegalCalendarStatus
+import com.z.money.ui.sync.syncFailedStatus
+import com.z.money.ui.sync.syncStatus
+import com.z.money.ui.sync.syncedStatus
 import com.z.money.ui.theme.MoneyTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -45,12 +46,7 @@ fun EarningScreen() {
     }
     val persistedSettings by repository.settings.collectAsState(initial = initialSettings)
     val settings = EarningSettings.fromUserSettings(persistedSettings)
-    val systemInDarkTheme = isSystemInDarkTheme()
-    val darkTheme = when (persistedSettings.themeMode) {
-        ThemeMode.System -> systemInDarkTheme
-        ThemeMode.Light -> false
-        ThemeMode.Dark -> true
-    }
+    val darkTheme = persistedSettings.themeMode.resolveDarkTheme(isSystemInDarkTheme())
     val scope = rememberCoroutineScope()
     var showingSettings by remember { mutableStateOf(false) }
     var showingAbout by remember { mutableStateOf(false) }
@@ -129,17 +125,5 @@ fun EarningScreen() {
                 onOpenSettings = { showingSettings = true },
             )
         }
-    }
-}
-
-@Composable
-private fun SystemBarsStyle(darkTheme: Boolean) {
-    val view = LocalView.current
-    val statusBarColor = Color.Transparent.toArgb()
-
-    SideEffect {
-        val window = (view.context as? Activity)?.window ?: return@SideEffect
-        window.statusBarColor = statusBarColor
-        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
     }
 }

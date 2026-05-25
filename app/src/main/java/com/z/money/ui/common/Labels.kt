@@ -1,4 +1,4 @@
-package com.z.money.ui.main
+package com.z.money.ui.common
 
 import com.z.money.data.WorkdayMode
 import com.z.money.data.WorkdaySource

@@ -1,4 +1,4 @@
-package com.z.money.ui.main
+package com.z.money.ui.about
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

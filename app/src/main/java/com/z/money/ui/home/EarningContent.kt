@@ -1,4 +1,4 @@
-package com.z.money.ui.main
+package com.z.money.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +24,11 @@ import com.z.money.data.WorkdayResolution
 import com.z.money.data.toWorkdayResolution
 import com.z.money.domain.EarningSnapshot
 import com.z.money.domain.IncomeCalculator
+import com.z.money.ui.common.SECONDS_PER_HOUR
+import com.z.money.ui.common.formatCurrency
+import com.z.money.ui.common.fractionDigitsForCents
+import com.z.money.ui.common.label
+import com.z.money.ui.settings.EarningSettings
 import com.z.money.ui.theme.MoneyTheme
 import java.time.LocalDateTime
 

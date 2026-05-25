@@ -1,4 +1,4 @@
-package com.z.money.ui.main
+package com.z.money.ui.common
 
 import java.text.NumberFormat
 import java.util.Locale

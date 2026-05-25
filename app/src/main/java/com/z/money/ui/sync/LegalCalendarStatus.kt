@@ -1,4 +1,4 @@
-package com.z.money.ui.main
+package com.z.money.ui.sync
 
 import com.z.money.data.ChinaLegalCalendarSource
 import com.z.money.data.UserSettings
