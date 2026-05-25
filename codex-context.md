@@ -157,3 +157,10 @@ git push
 - 用户希望继续保持“单文件单一功能”，并按界面/功能合理组织目录。
 - 已计划将 `ui/main` 拆成 app 编排、home 首页、settings 设置页、settings/components、settings/sections、common、sync、about 等包。
 - 重构目标是只移动职责和包结构，不改现有交互行为。
+
+## 2026-05-25 v0.3.0 发布准备
+
+- v0.3.0 汇总设置页自适应、即时保存、深色模式、状态栏修复和 UI 结构重构。
+- 版本号更新为 versionName 0.3.0，versionCode 3。
+- README 已重写，重点介绍功能、版本迭代、项目结构、隐私和 Release 下载。
+- 发布前运行 testDebugUnitTest、assembleRelease 和 apksigner 验证，再创建 tag 和 GitHub Release。
