@@ -1,6 +1,7 @@
 package com.z.money.ui.main
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -16,7 +17,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,11 +28,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.z.money.data.WorkdayMode
 import com.z.money.domain.SalaryPeriod
 
+private data class SettingsLayoutMetrics(
+    val horizontalPadding: Dp,
+    val verticalPadding: Dp,
+    val sectionSpacing: Dp,
+    val actionSpacing: Dp,
+)
+
+private fun settingsLayoutMetrics(maxWidth: Dp, maxHeight: Dp): SettingsLayoutMetrics {
+    return SettingsLayoutMetrics(
+        horizontalPadding = (maxWidth * 0.055f).coerceIn(16.dp, 28.dp),
+        verticalPadding = (maxHeight * 0.026f).coerceIn(14.dp, 24.dp),
+        sectionSpacing = (maxHeight * 0.017f).coerceIn(10.dp, 16.dp),
+        actionSpacing = (maxHeight * 0.012f).coerceIn(8.dp, 14.dp),
+    )
+}
+
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun SettingsContent(
     settings: EarningSettings,
     legalCalendarStatus: String,
@@ -43,50 +61,60 @@ fun SettingsContent(
 ) {
     var draft by remember(settings) { mutableStateOf(settings) }
 
-    Scaffold(
-        bottomBar = {
-            SettingsBottomBar(
-                onBack = onBack,
-                onSave = { onSave(draft) },
-                onOpenAbout = onOpenAbout,
-            )
-        },
-    ) { innerPadding ->
-        Column(
+    Scaffold { innerPadding ->
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+                .padding(innerPadding),
         ) {
-            Text(
-                text = "\u85aa\u8d44\u8bbe\u7f6e",
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
+            val metrics = settingsLayoutMetrics(maxWidth, maxHeight)
 
-            SalarySection(
-                draft = draft,
-                onDraftChange = { draft = it },
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .navigationBarsPadding()
+                    .padding(
+                        horizontal = metrics.horizontalPadding,
+                        vertical = metrics.verticalPadding,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(metrics.sectionSpacing),
+            ) {
+                Text(
+                    text = "\u85aa\u8d44\u8bbe\u7f6e",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                )
 
-            WorkTimeSection(
-                draft = draft,
-                onDraftChange = { draft = it },
-            )
+                SalarySection(
+                    draft = draft,
+                    onDraftChange = { draft = it },
+                )
 
-            WorkdayRuleSection(
-                draft = draft,
-                onDraftChange = { draft = it },
-            )
+                WorkTimeSection(
+                    draft = draft,
+                    onDraftChange = { draft = it },
+                )
 
-            if (legalCalendarStatus.isNotBlank() && draft.workdayMode == WorkdayMode.ChinaLegal) {
-                SyncStatusRow(
-                    legalCalendarStatus = legalCalendarStatus,
-                    onRefreshLegalCalendar = onRefreshLegalCalendar,
+                WorkdayRuleSection(
+                    draft = draft,
+                    onDraftChange = { draft = it },
+                )
+
+                if (legalCalendarStatus.isNotBlank() && draft.workdayMode == WorkdayMode.ChinaLegal) {
+                    SyncStatusRow(
+                        legalCalendarStatus = legalCalendarStatus,
+                        onRefreshLegalCalendar = onRefreshLegalCalendar,
+                    )
+                }
+
+                SettingsActions(
+                    actionSpacing = metrics.actionSpacing,
+                    onBack = onBack,
+                    onSave = { onSave(draft) },
+                    onOpenAbout = onOpenAbout,
                 )
             }
         }
@@ -94,45 +122,38 @@ fun SettingsContent(
 }
 
 @Composable
-private fun SettingsBottomBar(
+private fun SettingsActions(
+    actionSpacing: Dp,
     onBack: () -> Unit,
     onSave: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp,
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(actionSpacing),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        TextButton(
+            onClick = onOpenAbout,
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            TextButton(
-                onClick = onOpenAbout,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = "\u5173\u4e8e\u7a9d\u56ca\u8d39\u8ba1\u7b97\u5668")
-            }
+            Text(text = "\u5173\u4e8e\u7a9d\u56ca\u8d39\u8ba1\u7b97\u5668")
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier.weight(1f),
             ) {
-                OutlinedButton(
-                    onClick = onBack,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(text = "\u8fd4\u56de")
-                }
-                Button(
-                    onClick = onSave,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(text = "\u4fdd\u5b58")
-                }
+                Text(text = "\u8fd4\u56de")
+            }
+            Button(
+                onClick = onSave,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(text = "\u4fdd\u5b58")
             }
         }
     }
