@@ -133,3 +133,9 @@ git push
 - v0.2.0 包含“关于页面 + 版本号展示 + 反馈入口”。
 - 发布版本号更新为 versionName 0.2.0，versionCode 2。
 - 发布前需要运行 testDebugUnitTest 和 assembleRelease，确认 signed release APK 可用后再提交、打 tag、发布 GitHub Release。
+
+## 2026-05-25 自适应布局修复
+
+- 用户反馈部分手机在设置薪资界面看不到底部“返回/保存”按钮。
+- 原因是设置页内容没有 verticalScroll，底部按钮在小屏或字体放大时会被挤出屏幕。
+- 修复方向：设置页主体可滚动，底部操作区放入 Scaffold bottomBar，并给薪资周期/工作日规则选项增加换行能力。

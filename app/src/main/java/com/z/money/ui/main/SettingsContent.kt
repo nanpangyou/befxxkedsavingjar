@@ -2,16 +2,21 @@ package com.z.money.ui.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,12 +43,21 @@ fun SettingsContent(
 ) {
     var draft by remember(settings) { mutableStateOf(settings) }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        bottomBar = {
+            SettingsBottomBar(
+                onBack = onBack,
+                onSave = { onSave(draft) },
+                onOpenAbout = onOpenAbout,
+            )
+        },
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
@@ -75,9 +89,27 @@ fun SettingsContent(
                     onRefreshLegalCalendar = onRefreshLegalCalendar,
                 )
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.weight(1f))
-
+@Composable
+private fun SettingsBottomBar(
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+    onOpenAbout: () -> Unit,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 3.dp,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             TextButton(
                 onClick = onOpenAbout,
                 modifier = Modifier.fillMaxWidth(),
@@ -96,7 +128,7 @@ fun SettingsContent(
                     Text(text = "\u8fd4\u56de")
                 }
                 Button(
-                    onClick = { onSave(draft) },
+                    onClick = onSave,
                     modifier = Modifier.weight(1f),
                 ) {
                     Text(text = "\u4fdd\u5b58")
@@ -107,12 +139,16 @@ fun SettingsContent(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun SalarySection(
     draft: EarningSettings,
     onDraftChange: (EarningSettings) -> Unit,
 ) {
     SettingsSection(title = "\u85aa\u8d44") {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             SalaryPeriod.entries.forEach { period ->
                 FilterChip(
                     selected = draft.salaryPeriod == period,
@@ -151,12 +187,16 @@ private fun WorkTimeSection(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun WorkdayRuleSection(
     draft: EarningSettings,
     onDraftChange: (EarningSettings) -> Unit,
 ) {
     SettingsSection(title = "\u5de5\u4f5c\u65e5\u89c4\u5219") {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             WORKDAY_MODE_OPTIONS.forEach { mode ->
                 FilterChip(
                     selected = draft.workdayMode == mode,
