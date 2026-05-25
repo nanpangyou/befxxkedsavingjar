@@ -3,8 +3,8 @@ package com.z.money.ui.main
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -79,6 +80,13 @@ fun EarningScreen() {
     MoneyTheme(darkTheme = darkTheme) {
         SystemBarsStyle(darkTheme = darkTheme)
 
+        BackHandler(enabled = showingAbout) {
+            showingAbout = false
+        }
+        BackHandler(enabled = showingSettings && !showingAbout) {
+            showingSettings = false
+        }
+
         if (showingAbout) {
             AboutContent(
                 versionName = BuildConfig.VERSION_NAME,
@@ -102,13 +110,11 @@ fun EarningScreen() {
                         )
                     }
                 },
-                onSave = { draft ->
+                onSettingsChange = { updatedSettings ->
                     scope.launch {
-                        repository.save(draft.toUserSettings())
-                        showingSettings = false
+                        repository.save(updatedSettings.toUserSettings())
                     }
                 },
-                onBack = { showingSettings = false },
                 onOpenAbout = { showingAbout = true },
             )
         } else {
@@ -129,7 +135,7 @@ fun EarningScreen() {
 @Composable
 private fun SystemBarsStyle(darkTheme: Boolean) {
     val view = LocalView.current
-    val statusBarColor = MaterialTheme.colorScheme.surface.toArgb()
+    val statusBarColor = Color.Transparent.toArgb()
 
     SideEffect {
         val window = (view.context as? Activity)?.window ?: return@SideEffect

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -38,7 +37,6 @@ private data class SettingsLayoutMetrics(
     val horizontalPadding: Dp,
     val verticalPadding: Dp,
     val sectionSpacing: Dp,
-    val actionSpacing: Dp,
 )
 
 private fun settingsLayoutMetrics(maxWidth: Dp, maxHeight: Dp): SettingsLayoutMetrics {
@@ -46,7 +44,6 @@ private fun settingsLayoutMetrics(maxWidth: Dp, maxHeight: Dp): SettingsLayoutMe
         horizontalPadding = (maxWidth * 0.055f).coerceIn(16.dp, 28.dp),
         verticalPadding = (maxHeight * 0.026f).coerceIn(14.dp, 24.dp),
         sectionSpacing = (maxHeight * 0.017f).coerceIn(10.dp, 16.dp),
-        actionSpacing = (maxHeight * 0.012f).coerceIn(8.dp, 14.dp),
     )
 }
 
@@ -56,11 +53,15 @@ fun SettingsContent(
     settings: EarningSettings,
     legalCalendarStatus: String,
     onRefreshLegalCalendar: () -> Unit,
-    onSave: (EarningSettings) -> Unit,
-    onBack: () -> Unit,
+    onSettingsChange: (EarningSettings) -> Unit,
     onOpenAbout: () -> Unit,
 ) {
-    var draft by remember(settings) { mutableStateOf(settings) }
+    var draft by remember { mutableStateOf(settings) }
+
+    fun updateDraft(updated: EarningSettings) {
+        draft = updated
+        onSettingsChange(updated)
+    }
 
     Scaffold { innerPadding ->
         BoxWithConstraints(
@@ -91,22 +92,22 @@ fun SettingsContent(
 
                 SalarySection(
                     draft = draft,
-                    onDraftChange = { draft = it },
+                    onDraftChange = ::updateDraft,
                 )
 
                 WorkTimeSection(
                     draft = draft,
-                    onDraftChange = { draft = it },
+                    onDraftChange = ::updateDraft,
                 )
 
                 WorkdayRuleSection(
                     draft = draft,
-                    onDraftChange = { draft = it },
+                    onDraftChange = ::updateDraft,
                 )
 
                 AppearanceSection(
                     draft = draft,
-                    onDraftChange = { draft = it },
+                    onDraftChange = ::updateDraft,
                 )
 
                 if (legalCalendarStatus.isNotBlank() && draft.workdayMode == WorkdayMode.ChinaLegal) {
@@ -117,9 +118,6 @@ fun SettingsContent(
                 }
 
                 SettingsActions(
-                    actionSpacing = metrics.actionSpacing,
-                    onBack = onBack,
-                    onSave = { onSave(draft) },
                     onOpenAbout = onOpenAbout,
                 )
             }
@@ -129,39 +127,13 @@ fun SettingsContent(
 
 @Composable
 private fun SettingsActions(
-    actionSpacing: Dp,
-    onBack: () -> Unit,
-    onSave: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
-    Column(
+    TextButton(
+        onClick = onOpenAbout,
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(actionSpacing),
     ) {
-        TextButton(
-            onClick = onOpenAbout,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = "\u5173\u4e8e\u7a9d\u56ca\u8d39\u8ba1\u7b97\u5668")
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            OutlinedButton(
-                onClick = onBack,
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(text = "\u8fd4\u56de")
-            }
-            Button(
-                onClick = onSave,
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(text = "\u4fdd\u5b58")
-            }
-        }
+        Text(text = "\u5173\u4e8e\u7a9d\u56ca\u8d39\u8ba1\u7b97\u5668")
     }
 }
 
