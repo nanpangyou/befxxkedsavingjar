@@ -1,17 +1,23 @@
 package com.z.money.ui.main
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import com.z.money.BuildConfig
 import com.z.money.data.BuiltInChinaLegalCalendars
 import com.z.money.data.SettingsRepository
@@ -71,6 +77,8 @@ fun EarningScreen() {
     }
 
     MoneyTheme(darkTheme = darkTheme) {
+        SystemBarsStyle(darkTheme = darkTheme)
+
         if (showingAbout) {
             AboutContent(
                 versionName = BuildConfig.VERSION_NAME,
@@ -115,5 +123,17 @@ fun EarningScreen() {
                 onOpenSettings = { showingSettings = true },
             )
         }
+    }
+}
+
+@Composable
+private fun SystemBarsStyle(darkTheme: Boolean) {
+    val view = LocalView.current
+    val statusBarColor = MaterialTheme.colorScheme.surface.toArgb()
+
+    SideEffect {
+        val window = (view.context as? Activity)?.window ?: return@SideEffect
+        window.statusBarColor = statusBarColor
+        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
     }
 }
