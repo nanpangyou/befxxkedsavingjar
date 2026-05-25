@@ -6,11 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.z.money.data.ThemeMode
 import com.z.money.data.WorkdayMode
 import com.z.money.domain.SalaryPeriod
 
@@ -61,11 +62,12 @@ fun SettingsContent(
 ) {
     var draft by remember(settings) { mutableStateOf(settings) }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
+    ) { innerPadding ->
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
                 .padding(innerPadding),
         ) {
             val metrics = settingsLayoutMetrics(maxWidth, maxHeight)
@@ -99,6 +101,11 @@ fun SettingsContent(
                 )
 
                 WorkdayRuleSection(
+                    draft = draft,
+                    onDraftChange = { draft = it },
+                )
+
+                AppearanceSection(
                     draft = draft,
                     onDraftChange = { draft = it },
                 )
@@ -154,6 +161,28 @@ private fun SettingsActions(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(text = "\u4fdd\u5b58")
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun AppearanceSection(
+    draft: EarningSettings,
+    onDraftChange: (EarningSettings) -> Unit,
+) {
+    SettingsSection(title = "\u5916\u89c2") {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ThemeMode.entries.forEach { mode ->
+                FilterChip(
+                    selected = draft.themeMode == mode,
+                    onClick = { onDraftChange(draft.copy(themeMode = mode)) },
+                    label = { Text(text = mode.label) },
+                )
             }
         }
     }

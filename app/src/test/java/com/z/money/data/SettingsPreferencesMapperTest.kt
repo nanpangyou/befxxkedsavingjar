@@ -71,6 +71,7 @@ class SettingsPreferencesMapperTest {
             workEndMinutes = 19 * 60 + 45,
             workdayMode = WorkdayMode.FixedWeekly,
             workDays = setOf(DayOfWeek.TUESDAY),
+            themeMode = ThemeMode.Dark,
         )
         val preferences = mutablePreferencesOf()
 
@@ -83,5 +84,6 @@ class SettingsPreferencesMapperTest {
         assertEquals(original.workEndMinutes, restored.workEndMinutes)
         assertEquals(original.workdayMode, restored.workdayMode)
         assertEquals(original.workDays, restored.workDays)
+        assertEquals(original.themeMode, restored.themeMode)
     }
 }

@@ -28,6 +28,9 @@ fun Preferences.toUserSettings(
         workDays = this[SettingsKeys.workDays]?.toWorkDays()
             ?: defaultSettings.workDays,
         chinaLegalCalendar = toChinaLegalCalendar() ?: fallbackCalendar,
+        themeMode = ThemeMode.entries.firstOrNull {
+            it.name == this[SettingsKeys.themeMode]
+        } ?: defaultSettings.themeMode,
     )
 }
 
@@ -40,6 +43,7 @@ fun MutablePreferences.writeUserSettings(settings: UserSettings) {
     this[SettingsKeys.workEndMinutes] = settings.workEndMinutes
     this[SettingsKeys.workdayMode] = settings.workdayMode.name
     this[SettingsKeys.workDays] = settings.workDays.toPreferenceValue()
+    this[SettingsKeys.themeMode] = settings.themeMode.name
 
     settings.chinaLegalCalendar?.let(::writeChinaLegalCalendar)
 }

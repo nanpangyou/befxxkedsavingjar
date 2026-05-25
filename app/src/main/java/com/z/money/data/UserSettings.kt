@@ -13,4 +13,5 @@ data class UserSettings(
     val workdayMode: WorkdayMode = WorkdayMode.ChinaLegal,
     val workDays: Set<DayOfWeek> = WorkSchedule.DEFAULT_WORK_DAYS,
     val chinaLegalCalendar: ChinaLegalCalendar? = null,
+    val themeMode: ThemeMode = ThemeMode.System,
 )

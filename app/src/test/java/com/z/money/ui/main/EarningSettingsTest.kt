@@ -1,6 +1,7 @@
 package com.z.money.ui.main
 
 import com.z.money.data.WorkdayMode
+import com.z.money.data.ThemeMode
 import com.z.money.domain.SalaryPeriod
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -16,6 +17,7 @@ class EarningSettingsTest {
             workEndMinutes = 18 * 60,
             workdayMode = WorkdayMode.FixedWeekly,
             workDays = setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+            themeMode = ThemeMode.Dark,
         )
 
         val userSettings = settings.toUserSettings()
@@ -26,6 +28,7 @@ class EarningSettingsTest {
         assertEquals(18 * 60, userSettings.workEndMinutes)
         assertEquals(WorkdayMode.FixedWeekly, userSettings.workdayMode)
         assertEquals(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY), userSettings.workDays)
+        assertEquals(ThemeMode.Dark, userSettings.themeMode)
     }
 
     @Test

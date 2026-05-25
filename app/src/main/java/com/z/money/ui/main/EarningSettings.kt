@@ -1,6 +1,7 @@
 package com.z.money.ui.main
 
 import com.z.money.data.ChinaLegalCalendar
+import com.z.money.data.ThemeMode
 import com.z.money.data.UserSettings
 import com.z.money.data.WorkdayMode
 import com.z.money.data.toSalaryInput
@@ -16,6 +17,7 @@ data class EarningSettings(
     val workdayMode: WorkdayMode = WorkdayMode.ChinaLegal,
     val workDays: Set<DayOfWeek> = UserSettings().workDays,
     val chinaLegalCalendar: ChinaLegalCalendar? = null,
+    val themeMode: ThemeMode = ThemeMode.System,
 ) {
     val summaryText: String
         get() = "\u5f53\u524d\u4f7f\u7528\uff1a${salaryPeriod.label} ${salaryAmount.ifBlank { "0" }} \u5143\uff0c${workdayMode.label}\uff0c${workStartMinutes.toTimeText()}-${workEndMinutes.toTimeText()}\u3002"
@@ -33,6 +35,7 @@ data class EarningSettings(
             workdayMode = workdayMode,
             workDays = workDays,
             chinaLegalCalendar = chinaLegalCalendar,
+            themeMode = themeMode,
         )
     }
 
@@ -46,6 +49,7 @@ data class EarningSettings(
                 workdayMode = settings.workdayMode,
                 workDays = settings.workDays,
                 chinaLegalCalendar = settings.chinaLegalCalendar,
+                themeMode = settings.themeMode,
             )
         }
     }

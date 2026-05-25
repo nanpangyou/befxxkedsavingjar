@@ -13,6 +13,7 @@ object SettingsKeys {
     val workEndMinutes = intPreferencesKey("work_end_minutes")
     val workdayMode = stringPreferencesKey("workday_mode")
     val workDays = stringPreferencesKey("work_days")
+    val themeMode = stringPreferencesKey("theme_mode")
     val chinaLegalYear = intPreferencesKey("china_legal_year")
     val chinaLegalExtraWorkDates = stringPreferencesKey("china_legal_extra_work_dates")
     val chinaLegalOffDates = stringPreferencesKey("china_legal_off_dates")
