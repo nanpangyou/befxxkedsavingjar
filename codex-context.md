@@ -169,3 +169,9 @@ git push
 
 - `dev` 作为日常开发分支，后续新功能、修复和重构默认在 `dev` 上进行。
 - `main` 只用于正式版本发布；发布时从 `dev` 合并到 `main`，更新版本号，打 tag，并创建 GitHub Release。
+
+## 2026-05-26 图标替换
+
+- 当前开发分支为 `dev`。
+- 用户提供新的储蓄罐小猪图标，要求先替换 App launcher icon。
+- 图标资源使用位图前景 + 纯色 adaptive icon 背景，保留 Android adaptive icon 配置。
