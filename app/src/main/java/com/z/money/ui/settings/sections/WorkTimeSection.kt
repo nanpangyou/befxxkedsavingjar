@@ -10,7 +10,7 @@ fun WorkTimeSection(
     draft: EarningSettings,
     onDraftChange: (EarningSettings) -> Unit,
 ) {
-    SettingsSection(title = "\u5de5\u4f5c\u65f6\u95f4") {
+    SettingsSection(title = "\u5de5\u4f5c\u65f6\u95f4", icon = "\u23f0") {
         SettingsTimeDropdown(
             label = "\u4e0a\u73ed\u65f6\u95f4",
             minutes = draft.workStartMinutes,

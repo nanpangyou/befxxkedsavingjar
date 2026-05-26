@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -19,7 +21,7 @@ fun SalarySection(
     draft: EarningSettings,
     onDraftChange: (EarningSettings) -> Unit,
 ) {
-    SettingsSection(title = "\u85aa\u8d44") {
+    SettingsSection(title = "\u85aa\u8d44", icon = "\ud83d\udcbc") {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -28,6 +30,10 @@ fun SalarySection(
                 FilterChip(
                     selected = draft.salaryPeriod == period,
                     onClick = { onDraftChange(draft.copy(salaryPeriod = period)) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
                     label = { Text(text = period.label) },
                 )
             }

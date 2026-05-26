@@ -1,51 +1,57 @@
 package com.z.money.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = MintGreen,
+    onPrimary = ForestBackground,
+    secondary = DarkCoinGold,
+    tertiary = DarkBrickCoral,
+    background = ForestBackground,
+    onBackground = IvoryText,
+    surface = ForestSurface,
+    surfaceVariant = ForestContainer,
+    surfaceContainer = ForestContainer,
+    onSurface = IvoryText,
+    onSurfaceVariant = DarkMutedText,
+    outline = DarkMutedText.copy(alpha = 0.42f),
+    primaryContainer = MintGreen.copy(alpha = 0.22f),
+    onPrimaryContainer = IvoryText,
+    secondaryContainer = DarkCoinGold.copy(alpha = 0.2f),
+    onSecondaryContainer = IvoryText,
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    primary = MossGreen,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    secondary = CoinGold,
+    tertiary = BrickCoral,
+    background = WarmBackground,
+    onBackground = InkText,
+    surface = WarmSurface,
+    surfaceVariant = WarmContainer,
+    surfaceContainer = WarmContainer,
+    onSurface = InkText,
+    onSurfaceVariant = MutedText,
+    outline = MutedText.copy(alpha = 0.32f),
+    primaryContainer = MossGreen.copy(alpha = 0.14f),
+    onPrimaryContainer = InkText,
+    secondaryContainer = CoinGold.copy(alpha = 0.18f),
+    onSecondaryContainer = InkText,
 )
 
 @Composable
 fun MoneyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

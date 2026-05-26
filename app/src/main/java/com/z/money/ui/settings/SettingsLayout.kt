@@ -12,7 +12,7 @@ data class SettingsLayoutMetrics(
 fun settingsLayoutMetrics(maxWidth: Dp, maxHeight: Dp): SettingsLayoutMetrics {
     return SettingsLayoutMetrics(
         horizontalPadding = (maxWidth * 0.055f).coerceIn(16.dp, 28.dp),
-        verticalPadding = (maxHeight * 0.026f).coerceIn(14.dp, 24.dp),
-        sectionSpacing = (maxHeight * 0.017f).coerceIn(10.dp, 16.dp),
+        verticalPadding = (maxHeight * 0.026f).coerceIn(18.dp, 24.dp),
+        sectionSpacing = (maxHeight * 0.025f).coerceIn(18.dp, 28.dp),
     )
 }

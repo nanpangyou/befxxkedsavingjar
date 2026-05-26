@@ -10,7 +10,7 @@ val WorkdayStatus.label: String
     get() = when (this) {
         WorkdayStatus.NotWorkday -> "\u4eca\u5929\u4e0d\u662f\u5de5\u4f5c\u65e5"
         WorkdayStatus.BeforeWork -> "\u8fd8\u6ca1\u5f00\u59cb\u4e0a\u73ed"
-        WorkdayStatus.Working -> "\u6b63\u5728\u6323\u94b1"
+        WorkdayStatus.Working -> "\u6b63\u5728\u6253\u5de5"
         WorkdayStatus.AfterWork -> "\u4eca\u5929\u5df2\u7ecf\u4e0b\u73ed"
     }
 
