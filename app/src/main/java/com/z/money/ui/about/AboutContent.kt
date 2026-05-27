@@ -3,6 +3,7 @@ package com.z.money.ui.about
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,10 +29,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.z.money.R
+import com.z.money.ui.common.PiggyJarIllustration
 import com.z.money.ui.common.SecondaryActionButton
 import com.z.money.ui.common.UiRadius
 import com.z.money.ui.common.UiSpacing
 import com.z.money.ui.common.WarmCard
+import com.z.money.ui.common.WorkerIllustration
 import com.z.money.ui.theme.MoneyTheme
 
 @Composable
@@ -57,6 +60,8 @@ fun AboutContent(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
             )
+
+            AboutScene()
 
             WarmCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -116,6 +121,30 @@ fun AboutContent(
                 text = "\u8fd4\u56de",
                 onClick = onBack,
                 modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun AboutScene() {
+    WarmCard(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+        ) {
+            WorkerIllustration(
+                resting = true,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .size(width = 150.dp, height = 96.dp),
+            )
+            PiggyJarIllustration(
+                showJar = true,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(width = 150.dp, height = 112.dp),
             )
         }
     }

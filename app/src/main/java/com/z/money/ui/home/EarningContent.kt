@@ -1,8 +1,5 @@
 package com.z.money.ui.home
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,37 +12,34 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.z.money.R
 import com.z.money.data.WorkdayResolution
 import com.z.money.data.toWorkdayResolution
 import com.z.money.domain.EarningSnapshot
 import com.z.money.domain.IncomeCalculator
 import com.z.money.domain.WorkdayStatus
+import com.z.money.ui.common.CoinTrail
+import com.z.money.ui.common.PiggyJarIllustration
 import com.z.money.ui.common.PrimaryActionButton
 import com.z.money.ui.common.SECONDS_PER_HOUR
-import com.z.money.ui.common.UiRadius
 import com.z.money.ui.common.UiSize
 import com.z.money.ui.common.UiSpacing
 import com.z.money.ui.common.WarmCard
+import com.z.money.ui.common.WorkerIllustration
 import com.z.money.ui.common.formatCurrency
 import com.z.money.ui.common.fractionDigitsForCents
 import com.z.money.ui.common.label
@@ -88,8 +82,12 @@ fun EarningContent(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
-                TextButton(onClick = onOpenSettings) {
-                    Text(text = "\u2699", fontSize = 22.sp)
+                IconButton(onClick = onOpenSettings) {
+                    Text(
+                        text = "\u2699",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 20.sp,
+                    )
                 }
             }
 
@@ -158,15 +156,15 @@ private fun HeroEarningBlock(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 88.dp),
+                .padding(end = 112.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = amountText,
                 color = MaterialTheme.colorScheme.primary,
-                fontSize = 42.sp,
+                fontSize = 40.sp,
                 fontWeight = FontWeight.Black,
-                lineHeight = 46.sp,
+                lineHeight = 44.sp,
                 maxLines = 1,
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
@@ -180,13 +178,16 @@ private fun HeroEarningBlock(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        Image(
-            painter = painterResource(R.drawable.ic_launcher_foreground),
-            contentDescription = null,
+        PiggyJarIllustration(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .size(92.dp),
-            contentScale = ContentScale.Fit,
+                .size(width = 116.dp, height = 94.dp),
+            showJar = false,
+        )
+        CoinTrail(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 4.dp, end = 4.dp),
         )
     }
 }
@@ -265,43 +266,10 @@ private fun StatusCard(status: WorkdayStatus) {
                     ) {}
                 }
             }
-            WorkerSketch(isResting = isAfterWork)
-        }
-    }
-}
-
-@Composable
-private fun WorkerSketch(isResting: Boolean) {
-    val primary = MaterialTheme.colorScheme.primary
-    val accent = MaterialTheme.colorScheme.secondary
-    val brick = MaterialTheme.colorScheme.tertiary
-    Canvas(
-        modifier = Modifier
-            .size(width = 116.dp, height = 82.dp)
-            .clip(RoundedCornerShape(UiRadius.Card))
-            .background(Color.Transparent),
-    ) {
-        val groundY = size.height * 0.82f
-        drawLine(
-            color = primary.copy(alpha = 0.35f),
-            start = Offset(size.width * 0.1f, groundY),
-            end = Offset(size.width * 0.95f, groundY),
-            strokeWidth = 5f,
-        )
-        drawCircle(accent, radius = 12f, center = Offset(size.width * 0.53f, size.height * 0.18f))
-        drawCircle(primary, radius = 15f, center = Offset(size.width * 0.5f, size.height * 0.34f))
-        drawCircle(Color(0xFFF3B082), radius = 10f, center = Offset(size.width * 0.5f, size.height * 0.2f))
-        if (isResting) {
-            drawLine(brick, Offset(size.width * 0.36f, size.height * 0.55f), Offset(size.width * 0.18f, groundY), 7f)
-            drawLine(brick, Offset(size.width * 0.58f, size.height * 0.55f), Offset(size.width * 0.83f, groundY), 7f)
-            drawCircle(primary.copy(alpha = 0.55f), radius = 20f, center = Offset(size.width * 0.75f, size.height * 0.32f))
-        } else {
-            drawLine(brick, Offset(size.width * 0.38f, size.height * 0.54f), Offset(size.width * 0.27f, groundY), 8f)
-            drawLine(brick, Offset(size.width * 0.6f, size.height * 0.54f), Offset(size.width * 0.74f, groundY), 8f)
-            repeat(5) { index ->
-                val x = size.width * (0.68f + index * 0.055f)
-                drawRoundRect(brick, topLeft = Offset(x, size.height * 0.42f), size = androidx.compose.ui.geometry.Size(15f, 11f))
-            }
+            WorkerIllustration(
+                resting = isAfterWork,
+                modifier = Modifier.size(width = 118.dp, height = 82.dp),
+            )
         }
     }
 }

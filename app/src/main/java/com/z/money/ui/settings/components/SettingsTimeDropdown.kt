@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.z.money.ui.common.UiRadius
 import com.z.money.ui.common.UiSize
@@ -61,6 +63,15 @@ fun SettingsTimeDropdown(
                     onMinutesChange(selectedHour * MINUTES_PER_HOUR + selectedMinute)
                 },
                 modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = ":",
+                modifier = Modifier
+                    .width(10.dp)
+                    .align(androidx.compose.ui.Alignment.CenterVertically),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
             )
             TimePartDropdown(
                 value = minute,
