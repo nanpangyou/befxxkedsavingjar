@@ -13,7 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import com.z.money.data.WorkdayMode
+import com.z.money.ui.common.SecondaryActionButton
 import com.z.money.ui.settings.sections.AppearanceSection
 import com.z.money.ui.settings.sections.LegalCalendarSyncSection
 import com.z.money.ui.settings.sections.SalarySection
@@ -43,7 +43,7 @@ fun SettingsContent(
         onSettingsChange(updated)
     }
 
-    Scaffold { innerPadding ->
+    Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
@@ -67,7 +67,7 @@ fun SettingsContent(
                     text = "\u85aa\u8d44\u8bbe\u7f6e",
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Black,
                 )
 
                 SalarySection(
@@ -97,12 +97,11 @@ fun SettingsContent(
                     )
                 }
 
-                TextButton(
+                SecondaryActionButton(
+                    text = "\u5173\u4e8e\u7a9d\u56ca\u8d39\u8ba1\u7b97\u5668",
                     onClick = onOpenAbout,
                     modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(text = "\u5173\u4e8e\u7a9d\u56ca\u8d39\u8ba1\u7b97\u5668")
-                }
+                )
             }
         }
     }

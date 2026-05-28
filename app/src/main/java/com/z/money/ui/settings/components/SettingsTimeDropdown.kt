@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,7 +18,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.z.money.ui.common.UiRadius
+import com.z.money.ui.common.UiSize
 import com.z.money.ui.common.MINUTES_PER_DAY
 import com.z.money.ui.common.MINUTES_PER_HOUR
 import com.z.money.ui.common.MINUTE_OPTIONS
@@ -58,6 +64,15 @@ fun SettingsTimeDropdown(
                 },
                 modifier = Modifier.weight(1f),
             )
+            Text(
+                text = ":",
+                modifier = Modifier
+                    .width(10.dp)
+                    .align(androidx.compose.ui.Alignment.CenterVertically),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+            )
             TimePartDropdown(
                 value = minute,
                 options = if (hour == 24) listOf(0) else MINUTE_OPTIONS,
@@ -82,9 +97,19 @@ private fun TimePartDropdown(
     Column(modifier = modifier) {
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = UiSize.SmallButtonHeight),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(UiRadius.Button),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ),
         ) {
-            Text(text = "%02d %s".format(Locale.US, value, suffix))
+            Text(
+                text = "%02d %s".format(Locale.US, value, suffix),
+                fontWeight = FontWeight.SemiBold,
+            )
         }
         DropdownMenu(
             expanded = expanded,
