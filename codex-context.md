@@ -201,3 +201,10 @@ git push
 - 已从元素集抠出透明 PNG，源素材保存在 `design-assets/cutouts/`，Android 使用副本保存在 `app/src/main/res/drawable-nodpi/`。
 - 主要素材包括打工人、休息人、小猪、存钱罐、金币、钱包、时钟、日历、调色盘、盾牌、反馈、设置、砖块等。
 - `MoneyIllustrations.kt` 改为加载 PNG 素材，不再绘制 Canvas 插画；设置页分区图标也改为素材图。
+
+## 2026-05-28 v0.4.0 发布准备
+
+- 用户认可素材方向明显好转，但仍需后续继续打磨 UI 细节。
+- 当前准备把素材版发布为 `v0.4.0`：`versionName = "0.4.0"`，`versionCode = 4`。
+- README 已重写为干净中文，并新增 v0.4.0 更新日志，重点说明真实素材替换和素材目录。
+- 发布流程仍为：先在 `dev` 提交并推送，通过测试与 release 构建后合并到 `main`，打 tag，创建 GitHub Release。
