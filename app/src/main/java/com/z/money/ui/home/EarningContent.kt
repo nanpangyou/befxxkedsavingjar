@@ -27,11 +27,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.z.money.R
 import com.z.money.data.WorkdayResolution
 import com.z.money.data.toWorkdayResolution
 import com.z.money.domain.EarningSnapshot
 import com.z.money.domain.IncomeCalculator
 import com.z.money.domain.WorkdayStatus
+import com.z.money.ui.common.AssetImage
 import com.z.money.ui.common.CoinTrail
 import com.z.money.ui.common.PiggyJarIllustration
 import com.z.money.ui.common.PrimaryActionButton
@@ -83,10 +85,10 @@ fun EarningContent(
                     fontWeight = FontWeight.Bold,
                 )
                 IconButton(onClick = onOpenSettings) {
-                    Text(
-                        text = "\u2699",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 20.sp,
+                    AssetImage(
+                        resId = R.drawable.asset_settings,
+                        modifier = Modifier.size(26.dp),
+                        contentDescription = "\u8bbe\u7f6e",
                     )
                 }
             }

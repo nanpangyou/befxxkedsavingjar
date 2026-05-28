@@ -193,3 +193,11 @@ git push
 - 本轮新增项目内 Compose 插画组件，覆盖小猪/存钱罐、金币、打工状态、下班休息、关于页场景；不从未授权位置读取或裁剪素材。
 - 设置页的月薪/年薪、工作日规则、外观选择改为长条分段控件，更接近设计稿组件形态。
 - `.superpowers/` 是本轮临时视觉对照页目录，已加入 `.gitignore`，不要提交其中内容。
+
+## 2026-05-28 元素集素材替换
+
+- 用户反馈 Canvas/Compose 仿画效果仍差，明确要求不要再用 SVG/Canvas 画，改用元素集中的真实素材。
+- 用户已把元素集保存到 `D:\Code\Money\design-assets\element-set.png`。
+- 已从元素集抠出透明 PNG，源素材保存在 `design-assets/cutouts/`，Android 使用副本保存在 `app/src/main/res/drawable-nodpi/`。
+- 主要素材包括打工人、休息人、小猪、存钱罐、金币、钱包、时钟、日历、调色盘、盾牌、反馈、设置、砖块等。
+- `MoneyIllustrations.kt` 改为加载 PNG 素材，不再绘制 Canvas 插画；设置页分区图标也改为素材图。

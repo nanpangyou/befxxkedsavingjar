@@ -1,6 +1,7 @@
 package com.z.money.ui.settings.sections
 
 import androidx.compose.runtime.Composable
+import com.z.money.R
 import com.z.money.domain.SalaryPeriod
 import com.z.money.ui.common.label
 import com.z.money.ui.settings.EarningSettings
@@ -13,7 +14,7 @@ fun SalarySection(
     draft: EarningSettings,
     onDraftChange: (EarningSettings) -> Unit,
 ) {
-    SettingsSection(title = "\u85aa\u8d44", icon = "\ud83d\udcbc") {
+    SettingsSection(title = "\u85aa\u8d44", iconRes = R.drawable.asset_wallet) {
         SegmentedSelector(
             options = SalaryPeriod.entries,
             selected = draft.salaryPeriod,

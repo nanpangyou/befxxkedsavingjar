@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.z.money.R
+import com.z.money.ui.common.AssetImage
 import com.z.money.ui.common.PiggyJarIllustration
 import com.z.money.ui.common.SecondaryActionButton
 import com.z.money.ui.common.UiRadius
@@ -108,11 +109,11 @@ fun AboutContent(
             }
 
             WarmCard(modifier = Modifier.fillMaxWidth()) {
-                AboutRow(icon = "\ud83d\udee1", title = "\u9690\u79c1\u8bf4\u660e", onClick = onOpenPrivacy)
+                AboutRow(iconRes = R.drawable.asset_shield, title = "\u9690\u79c1\u8bf4\u660e", onClick = onOpenPrivacy)
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.24f))
-                AboutRow(icon = "\u003c/\u003e", title = "GitHub", onClick = onOpenGitHub)
+                AboutRow(iconRes = R.drawable.asset_code, title = "GitHub", onClick = onOpenGitHub)
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.24f))
-                AboutRow(icon = "\ud83d\udcac", title = "\u53cd\u9988\u95ee\u9898", onClick = onOpenFeedback)
+                AboutRow(iconRes = R.drawable.asset_feedback, title = "\u53cd\u9988\u95ee\u9898", onClick = onOpenFeedback)
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -146,13 +147,19 @@ private fun AboutScene() {
                     .align(Alignment.CenterEnd)
                     .size(width = 150.dp, height = 112.dp),
             )
+            AssetImage(
+                resId = R.drawable.asset_pig,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .size(width = 112.dp, height = 86.dp),
+            )
         }
     }
 }
 
 @Composable
 private fun AboutRow(
-    icon: String,
+    iconRes: Int,
     title: String,
     onClick: () -> Unit,
 ) {
@@ -168,7 +175,10 @@ private fun AboutRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = icon, style = MaterialTheme.typography.titleMedium)
+            AssetImage(
+                resId = iconRes,
+                modifier = Modifier.size(28.dp),
+            )
             Text(
                 text = title,
                 color = MaterialTheme.colorScheme.onSurface,

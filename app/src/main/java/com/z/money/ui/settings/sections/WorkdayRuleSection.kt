@@ -1,6 +1,7 @@
 package com.z.money.ui.settings.sections
 
 import androidx.compose.runtime.Composable
+import com.z.money.R
 import com.z.money.data.WorkdayMode
 import com.z.money.ui.common.WORKDAY_MODE_OPTIONS
 import com.z.money.ui.common.label
@@ -14,7 +15,7 @@ fun WorkdayRuleSection(
     draft: EarningSettings,
     onDraftChange: (EarningSettings) -> Unit,
 ) {
-    SettingsSection(title = "\u5de5\u4f5c\u65e5\u89c4\u5219", icon = "\ud83d\udcc5") {
+    SettingsSection(title = "\u5de5\u4f5c\u65e5\u89c4\u5219", iconRes = R.drawable.asset_calendar) {
         SegmentedSelector(
             options = WORKDAY_MODE_OPTIONS,
             selected = draft.workdayMode,
